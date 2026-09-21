@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-primary: #1F6B35;
+  --color-primary-soft: #4F8A5B;
+  --color-cream: #F7F0DE;
+  --color-cream-soft: #FFF9ED;
+  --color-dark: #183B24;
+  --color-muted: #6B7263;
+
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-brand: var(--font-brand);
+  --font-tagline: var(--font-tagline);
+}
+
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* Fix: <body> uses flex flex-col, so every direct child (Navbar, page
+   content, CartBarSpacer, Footer, StickyCartBar) is a flex item. Flex
+   items default to min-width: auto, which prevents them from shrinking
+   below their own content's natural width - this silently overrides
+   max-w-* and overflow-hidden on any descendant and causes horizontal
+   overflow on narrow/mobile screens. Removing that default floor here
+   fixes it app-wide instead of patching every page individually. */
+body > * {
+  min-width: 0;
+  /* Flex items with auto horizontal margins (e.g. mx-auto centering
+     wrappers) are NOT stretched to the container's cross-axis width by
+     default - they size to their own content instead, which is what
+     caused the residual overflow even after min-width: 0. Forcing
+     width: 100% here makes every direct child of <body> always fill
+     the available width (any max-w-* + mx-auto pattern inside still
+     works exactly as expected for centering on wide screens). */
+  width: 100%;
+}
+
+body {
+  font-family: var(--font-body), sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), serif;
+}
+
+.font-brand {
+  font-family: var(--font-brand), serif;
+}
+
+.font-tagline {
+  font-family: var(--font-tagline), cursive;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

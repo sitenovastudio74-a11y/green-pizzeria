@@ -1,0 +1,583 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  CUSTOMER
+  STAFF
+  MANAGER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum AddressLabel {
+  HOME
+  WORK
+  OTHER
+}
+
+enum OrderStatus {
+  PENDING
+  PAYMENT_PENDING
+  PAYMENT_SUCCESS
+  CONFIRMED
+  PREPARING
+  READY_FOR_PICKUP
+  DELIVERY_BOOKING
+  RIDER_ASSIGNED
+  PICKED_UP
+  OUT_FOR_DELIVERY
+  DELIVERED
+  PAYMENT_FAILED
+  CANCELLED
+  DELIVERY_FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CASH
+  ONLINE
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum DeliveryProvider {
+  UBER_DIRECT
+  MANUAL
+}
+
+enum DeliveryStatus {
+  PENDING
+  CREATED
+  RIDER_ASSIGNED
+  PICKED_UP
+  OUT_FOR_DELIVERY
+  DELIVERED
+  FAILED
+  CANCELLED
+}
+
+enum WebhookStatus {
+  PENDING
+  PROCESSED
+  FAILED
+}
+
+model User {
+  id               String    @id @default(uuid())
+  email            String?   @unique
+  phone            String?   @unique
+  passwordHash     String
+  name             String
+  role             Role      @default(CUSTOMER)
+  isActive         Boolean   @default(true)
+  resetToken       String?   @unique
+  resetTokenExpiry DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  addresses  Address[]
+  sessions   Session[]
+  carts      Cart[]
+  orders     Order[]
+  auditLogs  AuditLog[]
+  reviews    Review[]
+  complaints Complaint[]
+
+  @@map("users")
+}
+
+model Session {
+  id           String    @id @default(uuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshToken String    @unique
+  userAgent    String?
+  ipAddress    String?
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@map("user_sessions")
+}
+
+model Address {
+  id          String       @id @default(uuid())
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label       AddressLabel @default(HOME)
+  fullAddress String
+  landmark    String?
+  city        String
+  state       String
+  pincode     String
+  latitude    Float?
+  longitude   Float?
+  isDefault   Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+
+  orders Order[]
+
+  @@map("addresses")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  imageUrl    String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  name        String
+  description String?
+  imageUrl    String?
+  basePrice   Decimal  @db.Decimal(10, 2)
+  isAvailable Boolean  @default(true)
+  isFeatured  Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  optionGroups OptionGroup[]
+  addons       ProductAddon[]
+  addonGroups  AddonGroup[]
+  cartItems    CartItem[]
+  orderItems   OrderItem[]
+  comboSlotEntries ComboSlotProduct[]
+
+  @@map("products")
+}
+
+model OptionGroup {
+  id         String  @id @default(uuid())
+  productId  String
+  product    Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name       String
+  isRequired Boolean @default(true)
+  sortOrder  Int     @default(0)
+
+  options Option[]
+
+  @@map("option_groups")
+}
+
+model Option {
+  id            String      @id @default(uuid())
+  optionGroupId String
+  optionGroup   OptionGroup @relation(fields: [optionGroupId], references: [id], onDelete: Cascade)
+  name          String
+  priceModifier Decimal     @default(0) @db.Decimal(10, 2)
+  isAvailable   Boolean     @default(true)
+  sortOrder     Int         @default(0)
+
+  cartItemOptions  CartItemOption[]
+  orderItemOptions OrderItemOption[]
+
+  @@map("options")
+}
+
+model Addon {
+  id          String  @id @default(uuid())
+  name        String
+  price       Decimal @db.Decimal(10, 2)
+  isAvailable Boolean @default(true)
+
+  products        ProductAddon[]
+  cartItemAddons  CartItemAddon[]
+  orderItemAddons OrderItemAddon[]
+
+  @@map("addons")
+}
+
+model AddonGroup {
+  id            String  @id @default(uuid())
+  productId     String
+  product       Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  name          String
+  minSelectable Int     @default(0)
+  maxSelectable Int     @default(1)
+  sortOrder     Int     @default(0)
+
+  productAddons ProductAddon[]
+
+  @@map("addon_groups")
+}
+
+model ProductAddon {
+  id           String      @id @default(uuid())
+  productId    String
+  product      Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  addonId      String
+  addon        Addon       @relation(fields: [addonId], references: [id], onDelete: Cascade)
+  addonGroupId String?
+  addonGroup   AddonGroup? @relation(fields: [addonGroupId], references: [id], onDelete: SetNull)
+
+  @@unique([productId, addonId])
+  @@map("product_addons")
+}
+
+model Cart {
+  id         String   @id @default(uuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  guestToken String?  @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  items CartItem[]
+  comboItems CartComboItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id                  String   @id @default(uuid())
+  cartId              String
+  cart                Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId           String
+  product             Product  @relation(fields: [productId], references: [id])
+  quantity            Int      @default(1)
+  specialInstructions String?
+  priceSnapshot       Decimal  @db.Decimal(10, 2)
+  createdAt           DateTime @default(now())
+
+  selectedOptions CartItemOption[]
+  selectedAddons  CartItemAddon[]
+
+  @@map("cart_items")
+}
+
+model CartItemOption {
+  id         String   @id @default(uuid())
+  cartItemId String
+  cartItem   CartItem @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
+  optionId   String
+  option     Option   @relation(fields: [optionId], references: [id])
+
+  @@map("cart_item_options")
+}
+
+model CartItemAddon {
+  id         String   @id @default(uuid())
+  cartItemId String
+  cartItem   CartItem @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
+  addonId    String
+  addon      Addon    @relation(fields: [addonId], references: [id])
+
+  @@map("cart_item_addons")
+}
+
+model Order {
+  id          String    @id @default(uuid())
+  orderNumber String    @unique
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  orderType   OrderType @default(DELIVERY)
+  addressId   String?
+  address     Address?  @relation(fields: [addressId], references: [id])
+
+  deliveryAddressText String?
+  subtotal            Decimal @db.Decimal(10, 2)
+  deliveryFee         Decimal @db.Decimal(10, 2)
+  tax                 Decimal @db.Decimal(10, 2)
+  discount            Decimal @default(0) @db.Decimal(10, 2)
+  total               Decimal @db.Decimal(10, 2)
+
+  status              OrderStatus @default(PENDING)
+  specialInstructions String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  items      OrderItem[]
+  payment    Payment?
+  delivery   Delivery?
+  review     Review?
+  complaints Complaint[]
+  comboItems OrderComboItem[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  productName         String
+  quantity            Int
+  unitPrice           Decimal @db.Decimal(10, 2)
+  subtotal            Decimal @db.Decimal(10, 2)
+  specialInstructions String?
+
+  selectedOptions OrderItemOption[]
+  selectedAddons  OrderItemAddon[]
+
+  @@map("order_items")
+}
+
+model OrderItemOption {
+  id          String    @id @default(uuid())
+  orderItemId String
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  optionId    String
+  option      Option    @relation(fields: [optionId], references: [id])
+
+  optionName    String
+  priceModifier Decimal @db.Decimal(10, 2)
+
+  @@map("order_item_options")
+}
+
+model OrderItemAddon {
+  id          String    @id @default(uuid())
+  orderItemId String
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  addonId     String
+  addon       Addon     @relation(fields: [addonId], references: [id])
+
+  addonName String
+  price     Decimal @db.Decimal(10, 2)
+
+  @@map("order_item_addons")
+}
+
+model Payment {
+  id      String @id @default(uuid())
+  orderId String @unique
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  method            PaymentMethod
+  status            PaymentStatus @default(PENDING)
+  amount            Decimal       @db.Decimal(10, 2)
+  provider          String?
+  providerPaymentId String?
+  idempotencyKey    String        @unique
+  paidAt            DateTime?
+  createdAt         DateTime      @default(now())
+
+  @@map("payments")
+}
+
+model Delivery {
+  id      String @id @default(uuid())
+  orderId String @unique
+  order   Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  provider           DeliveryProvider @default(UBER_DIRECT)
+  status             DeliveryStatus   @default(PENDING)
+  providerDeliveryId String?
+  trackingUrl        String?
+  courierName        String?
+  courierPhone       String?
+  pickupEta          DateTime?
+  dropoffEta         DateTime?
+  deliveredAt        DateTime?
+  failureReason      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("deliveries")
+}
+
+model Setting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String
+  entityType String
+  entityId   String?
+  oldValue   String?
+  newValue   String?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@map("audit_logs")
+}
+
+model WebhookEvent {
+  id          String        @id @default(uuid())
+  source      String
+  eventId     String        @unique
+  eventType   String
+  payload     String
+  status      WebhookStatus @default(PENDING)
+  processedAt DateTime?
+  createdAt   DateTime      @default(now())
+
+  @@map("webhook_events")
+}
+
+enum ComplaintStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+model Review {
+  id            String   @id @default(uuid())
+  orderId       String   @unique
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rating        Int
+  comment       String?
+  adminResponse String?
+  createdAt     DateTime @default(now())
+
+  @@map("reviews")
+}
+
+model Complaint {
+  id            String          @id @default(uuid())
+  orderId       String
+  order         Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject       String
+  description   String
+  status        ComplaintStatus @default(OPEN)
+  adminResponse String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@map("complaints")
+}
+
+enum OrderType {
+  DINE_IN
+  TAKEAWAY
+  DELIVERY
+}
+
+
+model Combo {
+  id                   String   @id @default(uuid())
+  name                 String
+  description          String?
+  imageUrl             String?
+  price                Decimal  @db.Decimal(10, 2)
+  isEligibleForCoupons Boolean  @default(false)
+  isActive             Boolean  @default(true)
+  sortOrder            Int      @default(0)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  slots           ComboSlot[]
+  cartComboItems  CartComboItem[]
+  orderComboItems OrderComboItem[]
+
+  @@map("combos")
+}
+
+model ComboSlot {
+  id          String @id @default(uuid())
+  comboId     String
+  combo       Combo  @relation(fields: [comboId], references: [id], onDelete: Cascade)
+  label       String
+  selectCount Int    @default(1)
+  sortOrder   Int    @default(0)
+
+  eligibleProducts ComboSlotProduct[]
+
+  @@map("combo_slots")
+}
+
+model ComboSlotProduct {
+  id          String    @id @default(uuid())
+  comboSlotId String
+  comboSlot   ComboSlot @relation(fields: [comboSlotId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([comboSlotId, productId])
+  @@map("combo_slot_products")
+}
+
+model CartComboItem {
+  id            String   @id @default(uuid())
+  cartId        String
+  cart          Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  comboId       String
+  combo         Combo    @relation(fields: [comboId], references: [id])
+  quantity      Int      @default(1)
+  priceSnapshot Decimal  @db.Decimal(10, 2)
+  createdAt     DateTime @default(now())
+
+  selections CartComboSelection[]
+
+  @@map("cart_combo_items")
+}
+
+model CartComboSelection {
+  id              String        @id @default(uuid())
+  cartComboItemId String
+  cartComboItem   CartComboItem @relation(fields: [cartComboItemId], references: [id], onDelete: Cascade)
+  comboSlotId     String
+  productId       String
+
+  @@map("cart_combo_selections")
+}
+
+model OrderComboItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  comboId   String
+  combo     Combo   @relation(fields: [comboId], references: [id])
+  comboName String
+  quantity  Int
+  unitPrice Decimal @db.Decimal(10, 2)
+  subtotal  Decimal @db.Decimal(10, 2)
+
+  selections OrderComboSelection[]
+
+  @@map("order_combo_items")
+}
+
+model OrderComboSelection {
+  id               String         @id @default(uuid())
+  orderComboItemId String
+  orderComboItem   OrderComboItem @relation(fields: [orderComboItemId], references: [id], onDelete: Cascade)
+  slotLabel        String
+  productId        String
+  productName      String
+
+  @@map("order_combo_selections")
+}
+

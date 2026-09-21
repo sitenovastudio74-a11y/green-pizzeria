@@ -1,0 +1,66 @@
+﻿const fs = require("fs");
+
+const dirPath = "C:\\Users\\OMPRAKASH KUMAR\\Projects\\green-pizzeria\\apps\\web\\app\\story";
+fs.mkdirSync(dirPath, { recursive: true });
+
+const filePath = dirPath + "\\page.tsx";
+
+const lines = [];
+lines.push('export default function StoryPage() {');
+lines.push('  return (');
+lines.push('    <div className="max-w-2xl mx-auto px-4 py-12">');
+lines.push('      <h1 className="text-3xl font-semibold mb-6">Our story</h1>');
+lines.push('');
+lines.push('      <p className="text-muted mb-4">');
+lines.push('        Green Pizzeria was born out of a simple idea: pizza in India deserves to');
+lines.push('        be made the way it is in Naples - hand-stretched, wood-fired, and built');
+lines.push('        on honest ingredients, with nothing to hide behind heavy toppings or');
+lines.push('        shortcuts.');
+lines.push('      </p>');
+lines.push('');
+lines.push('      <p className="text-muted mb-4">');
+lines.push('        Every pizza we make starts with a slow-proofed Napoletana dough, topped');
+lines.push('        with fresh vegetables, quality cheese, and sauces made in-house. We are');
+lines.push('        proud to be a 100% vegetarian kitchen - it is not a limitation, it is a');
+lines.push('        craft, and we have spent real time getting the balance of flavour and');
+lines.push('        texture right without ever reaching for meat as a shortcut.');
+lines.push('      </p>');
+lines.push('');
+lines.push('      <p className="text-muted mb-4">');
+lines.push('        We are based in Ashok Vihar, Delhi, and we bake, box and deliver every');
+lines.push('        order ourselves - no matter if you are dining in, picking up, or having');
+lines.push('        it delivered to your door. From our combos to our build-your-own options,');
+lines.push('        everything on the menu is designed to be shared, customised, and enjoyed');
+lines.push('        fresh out of the oven.');
+lines.push('      </p>');
+lines.push('');
+lines.push('      <p className="text-muted mb-4">');
+lines.push('        Whether it is a quiet weeknight dinner or a celebration with friends, our');
+lines.push('        goal is the same every time: a genuinely good, honest slice of Italy,');
+lines.push('        made fresh for you.');
+lines.push('      </p>');
+lines.push('');
+lines.push('      <h2 className="text-xl font-semibold mt-10 mb-3">What makes us different</h2>');
+lines.push('      <ul className="text-muted space-y-2 list-disc pl-5">');
+lines.push('        <li>100% vegetarian kitchen, every single item on the menu</li>');
+lines.push('        <li>Hand-stretched, wood-fired Napoletana-style dough</li>');
+lines.push('        <li>Fresh, in-house sauces and no artificial shortcuts</li>');
+lines.push('        <li>Dine-in, takeaway, and delivery - all made and packed with the same care</li>');
+lines.push('        <li>Combos and customisable options built for sharing</li>');
+lines.push('      </ul>');
+lines.push('');
+lines.push('      <h2 className="text-xl font-semibold mt-10 mb-3">Get in touch</h2>');
+lines.push('      <p className="text-muted">');
+lines.push('        Have a question, feedback, or a special request? We would love to hear');
+lines.push('        from you - visit our{" "}');
+lines.push('        <a href="/contact" className="text-green-600 font-medium">Contact page</a>');
+lines.push('        {" "}for our phone, email, and address.');
+lines.push('      </p>');
+lines.push('    </div>');
+lines.push('  );');
+lines.push('}');
+
+const content = lines.join("\n");
+
+fs.writeFileSync(filePath, content, { encoding: "utf8" });
+console.log("CREATED: " + filePath);
