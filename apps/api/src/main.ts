@@ -21,7 +21,7 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
   app.enableCors({
-    origin: ['http://localhost:3002', 'http://192.168.1.58:3002'],
+    origin: ['http://localhost:3002', 'https://green-pizzeria.vercel.app'],
     credentials: true,
   });
   app.useStaticAssets(join(__dirname, '..', 'uploads'), { prefix: '/uploads/' });

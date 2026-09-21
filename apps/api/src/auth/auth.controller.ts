@@ -16,10 +16,16 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
+const isProd = process.env.NODE_ENV === 'production';
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax' as const,
+  secure: isProd,
+  // In production the frontend (Vercel) and backend (Railway) are on
+  // different domains, so the cookie must be sameSite: 'none' to be sent
+  // on cross-site requests. Browsers require secure: true whenever
+  // sameSite is 'none'. In local dev, everything is on localhost, so
+  // 'lax' + non-secure keeps working over plain http.
+  sameSite: (isProd ? 'none' : 'lax') as 'none' | 'lax',
 };
 
 @Controller('auth')

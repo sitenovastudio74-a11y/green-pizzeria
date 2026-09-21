@@ -45,9 +45,17 @@ export class RazorpayProvider implements PaymentProviderInterface {
     return expectedSignature === input.signature;
   }
 
+  // Webhook signature verification uses a SEPARATE secret from the API
+  // key_secret above. RAZORPAY_WEBHOOK_SECRET is generated in the Razorpay
+  // Dashboard when the webhook URL is registered, and must be set in .env
+  // before webhooks will verify correctly.
   verifyWebhookSignature(rawBody: string, signature: string): boolean {
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    if (!webhookSecret) {
+      throw new Error('RAZORPAY_WEBHOOK_SECRET is not set');
+    }
     const expectedSignature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET as string)
+      .createHmac('sha256', webhookSecret)
       .update(rawBody)
       .digest('hex');
 

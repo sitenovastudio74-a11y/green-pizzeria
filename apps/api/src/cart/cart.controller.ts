@@ -51,8 +51,11 @@ export class CartController {
     const cart = await this.cartService.getOrCreateCart(userId, guestToken);
 
     if (!userId && cart.guestToken && cart.guestToken !== guestToken) {
+      const isProd = process.env.NODE_ENV === 'production';
       res.cookie('guestToken', cart.guestToken, {
         httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? 'none' : 'lax',
         maxAge: 30 * 24 * 60 * 60 * 1000,
       });
     }
