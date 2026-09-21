@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { useCart } from '../../context/CartContext';
+import { getImageUrl } from '../../lib/imageUrl';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -165,7 +166,7 @@ export default function ProductDetailPage() {
 
         {product.imageUrl ? (
           <img
-            src={API_URL + product.imageUrl}
+            src={getImageUrl(product.imageUrl) ?? undefined}
             alt={product.name}
             className="w-full h-full object-cover"
           />

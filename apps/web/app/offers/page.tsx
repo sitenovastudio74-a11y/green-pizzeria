@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useCart } from "../context/CartContext";
+import { getImageUrl } from "../lib/imageUrl";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -129,7 +130,7 @@ export default function OffersPage() {
             <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-cream-soft border border-dark/10 overflow-hidden flex items-center justify-center shrink-0">
               {combo.imageUrl ? (
                 <img
-                  src={API_URL + combo.imageUrl}
+                  src={getImageUrl(combo.imageUrl) ?? undefined}
                   alt={combo.name}
                   className="w-full h-full object-cover"
                 />

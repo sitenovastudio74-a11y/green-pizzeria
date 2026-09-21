@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'motion/react';
+import { getImageUrl } from '../lib/imageUrl';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -47,7 +48,7 @@ export default function FeaturedProducts() {
             <Link href={"/menu/" + product.id} className="flex flex-col items-center text-center group">
               <div className="w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-cream-soft border border-dark/10 overflow-hidden flex items-center justify-center mb-3 group-hover:border-primary transition-colors">
                 {product.imageUrl ? (
-                  <img src={API_URL + product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                  <img src={getImageUrl(product.imageUrl) ?? undefined} alt={product.name} className="w-full h-full object-cover" />
                 ) : (
                   <span className="font-display italic text-primary text-2xl">
                     {product.name.charAt(0)}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { isLoggedIn } from "../../login/page";
 import { apiFetch } from "../../lib/api";
+import { getImageUrl } from "../../lib/imageUrl";
 
 type Category = {
   id: string;
@@ -244,7 +245,7 @@ export default function AdminProductsPage() {
       <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-dark/5 overflow-hidden shrink-0 flex items-center justify-center text-lg font-medium text-muted">
         {product.imageUrl ? (
           <img
-            src={`http://localhost:4000${product.imageUrl}`}
+            src={getImageUrl(product.imageUrl) ?? undefined}
             alt={product.name}
             className="w-full h-full object-cover"
           />
@@ -418,7 +419,7 @@ export default function AdminProductsPage() {
               <label className="block text-xs text-muted mb-1">Image</label>
               {existingImageUrl && !imageFile && (
                 <img
-                  src={`http://localhost:4000${existingImageUrl}`}
+                  src={getImageUrl(existingImageUrl) ?? undefined}
                   alt="Current"
                   className="w-24 h-24 object-cover rounded-lg mb-2"
                 />

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { apiFetch } from "../../lib/api";
+import { getImageUrl } from "../../lib/imageUrl";
 
 type Category = {
   id: string;
@@ -160,7 +161,7 @@ export default function AdminCategoriesPage() {
               <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-dark/5 overflow-hidden shrink-0 flex items-center justify-center text-lg font-medium text-muted">
                 {cat.imageUrl ? (
                   <img
-                    src={`http://localhost:4000${cat.imageUrl}`}
+                    src={getImageUrl(cat.imageUrl) ?? undefined}
                     alt={cat.name}
                     className="w-full h-full object-cover"
                   />
@@ -235,7 +236,7 @@ export default function AdminCategoriesPage() {
               <label className="block text-xs text-muted mb-1">Image</label>
               {existingImageUrl && !imageFile && (
                 <img
-                  src={`http://localhost:4000${existingImageUrl}`}
+                  src={getImageUrl(existingImageUrl) ?? undefined}
                   alt="Current"
                   className="w-24 h-24 object-cover rounded-lg mb-2"
                 />

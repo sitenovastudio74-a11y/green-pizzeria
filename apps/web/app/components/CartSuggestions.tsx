@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'motion/react';
 import { useCart } from '../context/CartContext';
+import { getImageUrl } from '../lib/imageUrl';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -66,7 +67,7 @@ export default function CartSuggestions() {
             >
               <div className="w-full aspect-square rounded-xl bg-cream border border-dark/5 overflow-hidden flex items-center justify-center mb-2">
                 {product.imageUrl ? (
-                  <img src={API_URL + product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+                  <img src={getImageUrl(product.imageUrl) ?? undefined} alt={product.name} className="w-full h-full object-cover" />
                 ) : (
                   <span className="font-display italic text-primary text-xl">
                     {product.name.charAt(0)}

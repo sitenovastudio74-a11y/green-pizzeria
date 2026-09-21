@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useCart } from "../context/CartContext";
+import { getImageUrl } from "../lib/imageUrl";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -263,7 +264,7 @@ export default function ProductCustomizeSheet({ productId, onClose }: Props) {
                 <div className="w-14 h-14 rounded-xl bg-cream-soft border border-dark/10 overflow-hidden shrink-0">
                   {product.imageUrl ? (
                     <img
-                      src={API_URL + product.imageUrl}
+                      src={getImageUrl(product.imageUrl) ?? undefined}
                       alt={product.name}
                       className="w-full h-full object-cover"
                     />

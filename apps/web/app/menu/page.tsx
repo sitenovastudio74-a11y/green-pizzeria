@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { motion } from 'motion/react';
 import { useCart } from '../context/CartContext';
 import ProductCustomizeSheet from '../components/ProductCustomizeSheet';
+import { getImageUrl } from '../lib/imageUrl';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -58,7 +59,7 @@ function MenuItemRow({ product, index, onCustomize }: { product: Product; index:
     >
       <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-cream-soft border border-dark/10 overflow-hidden flex items-center justify-center shrink-0">
         {product.imageUrl ? (
-          <img src={API_URL + product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
+          <img src={getImageUrl(product.imageUrl) ?? undefined} alt={product.name} className="w-full h-full object-cover" />
         ) : (
           <span className="font-display italic text-primary text-lg">
             {product.name.charAt(0)}

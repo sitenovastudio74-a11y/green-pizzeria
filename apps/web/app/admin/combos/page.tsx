@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { isLoggedIn } from "../../login/page";
 import { apiFetch } from "../../lib/api";
+import { getImageUrl } from "../../lib/imageUrl";
 
 type Product = {
   id: string;
@@ -323,7 +324,7 @@ export default function AdminCombosPage() {
               <div className="w-20 h-20 rounded-lg bg-dark/5 overflow-hidden shrink-0 flex items-center justify-center text-lg font-medium text-muted">
                 {combo.imageUrl ? (
                   <img
-                    src={`http://localhost:4000${combo.imageUrl}`}
+                    src={getImageUrl(combo.imageUrl) ?? undefined}
                     alt={combo.name}
                     className="w-full h-full object-cover"
                   />
@@ -442,7 +443,7 @@ export default function AdminCombosPage() {
               <label className="block text-xs text-muted mb-1">Image</label>
               {existingImageUrl && !imageFile && (
                 <img
-                  src={`http://localhost:4000${existingImageUrl}`}
+                  src={getImageUrl(existingImageUrl) ?? undefined}
                   alt="Current"
                   className="w-24 h-24 object-cover rounded-lg mb-2"
                 />

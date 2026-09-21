@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'motion/react';
+import { getImageUrl } from '../lib/imageUrl';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -47,7 +48,7 @@ export default function CategoryRail() {
             >
               <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-cream-soft border border-dark/10 flex items-center justify-center overflow-hidden group-hover:border-primary transition-colors">
                 {cat.imageUrl ? (
-                  <img src={API_URL + cat.imageUrl} alt={cat.name} className="w-full h-full object-cover" />
+                  <img src={getImageUrl(cat.imageUrl) ?? undefined} alt={cat.name} className="w-full h-full object-cover" />
                 ) : (
                   <span className="font-display italic text-primary text-lg">
                     {cat.name.charAt(0)}
