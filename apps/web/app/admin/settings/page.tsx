@@ -116,7 +116,7 @@ export default function AdminSettingsPage() {
         <h2 className="text-sm font-medium mb-3">Pricing</h2>
         <div className="flex gap-4">
           <div className="flex-1">
-            <label className="block text-xs text-muted mb-1">Delivery fee (Rs.)</label>
+            <label className="block text-xs text-muted mb-1">Delivery fee (₹)</label>
             <input value={deliveryFee} onChange={(e) => setDeliveryFee(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" inputMode="numeric" />
           </div>
           <div className="flex-1">

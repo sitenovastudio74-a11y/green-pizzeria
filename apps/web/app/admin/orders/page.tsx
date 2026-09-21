@@ -162,8 +162,8 @@ export default function AdminOrdersPage() {
                 </span>
               </div>
               <div className="flex justify-between gap-2 text-xs text-muted mt-1 flex-wrap">
-                <span>{order.user?.name || "Unknown"} - {order.orderType}</span>
-                <span>Rs. {order.total} - {new Date(order.createdAt).toLocaleString("en-IN")}</span>
+                <span>{order.user?.name || "Unknown"} - {({ DINE_IN: "Dine-in", TAKEAWAY: "Takeaway", DELIVERY: "Delivery" } as Record<string, string>)[order.orderType] || order.orderType}</span>
+                <span>₹{order.total} - {new Date(order.createdAt).toLocaleString("en-IN")}</span>
               </div>
             </button>
 
@@ -185,17 +185,17 @@ export default function AdminOrdersPage() {
                 <div className="text-sm mb-3">
                   <p className="text-muted mb-1">Items</p>
                   {order.items.map((it) => (
-                    <p key={it.id}>{it.productName} x{it.quantity} - Rs. {it.subtotal}</p>
+                    <p key={it.id}>{it.productName} x{it.quantity} - ₹{it.subtotal}</p>
                   ))}
                   {order.comboItems && order.comboItems.map((c) => (
-                    <p key={c.id}>{c.comboName} x{c.quantity} - Rs. {c.subtotal}</p>
+                    <p key={c.id}>{c.comboName} x{c.quantity} - ₹{c.subtotal}</p>
                   ))}
                 </div>
 
                 {order.payment && (
                   <div className="text-sm mb-4">
                     <p className="text-muted mb-1">Payment</p>
-                    <p>{order.payment.method} - {order.payment.status}</p>
+                    <p>{order.payment.method === "CASH" ? "Cash" : "Online"} - {({ PENDING: "Pending", SUCCESS: "Paid", FAILED: "Failed", REFUNDED: "Refunded" } as Record<string, string>)[order.payment.status] || order.payment.status}</p>
                   </div>
                 )}
 

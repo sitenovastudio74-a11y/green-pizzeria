@@ -31,7 +31,7 @@ export default function StickyCartBar() {
             className="flex items-center justify-between bg-primary text-cream-soft rounded-2xl px-6 py-4 shadow-lg hover:bg-primary-soft transition-colors"
           >
             <span className="text-sm font-medium">
-              {itemCount} {itemCount === 1 ? 'item' : 'items'} - Rs. {cart?.subtotal ?? 0}
+              {itemCount} {itemCount === 1 ? 'item' : 'items'} - ₹{cart?.subtotal ?? 0}
             </span>
             <span className="text-sm font-semibold">View cart</span>
           </Link>

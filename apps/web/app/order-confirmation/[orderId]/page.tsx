@@ -7,7 +7,7 @@ import { isLoggedIn } from "../../login/page";
 import { apiFetch } from "../../lib/api";
 
 type OrderItemOption = { optionName: string; priceModifier: number };
-type OrderItemAddon = { addonName: string; price: number };
+type OrderItemAddon = { addonName: string; price: number; quantity?: number };
 type OrderItem = {
   id: string;
   productName: string;
@@ -164,7 +164,7 @@ export default function OrderConfirmationPage() {
           <span className="text-muted">Payment</span>
           <span className="font-medium">
             {order.payment?.method === "CASH" ? "Cash" : "Online"}
-            {order.payment?.status ? ` — ${order.payment.status}` : ""}
+            {order.payment?.status ? ` — ${({ PENDING: "Pending", SUCCESS: "Paid", FAILED: "Failed", REFUNDED: "Refunded" } as Record<string, string>)[order.payment.status] || order.payment.status}` : ""}
           </span>
         </div>
       </div>
@@ -189,7 +189,7 @@ export default function OrderConfirmationPage() {
                 <span>
                   {item.productName} x{item.quantity}
                 </span>
-                <span>Rs. {item.subtotal}</span>
+                <span>₹{item.subtotal}</span>
               </div>
               {item.selectedOptions.length > 0 && (
                 <p className="text-xs text-muted mt-0.5">
@@ -198,7 +198,7 @@ export default function OrderConfirmationPage() {
               )}
               {item.selectedAddons.length > 0 && (
                 <p className="text-xs text-muted mt-0.5">
-                  + {item.selectedAddons.map((a) => a.addonName).join(", ")}
+                  + {item.selectedAddons.map((a) => a.addonName + ((a.quantity ?? 1) > 1 ? " x" + a.quantity : "")).join(", ")}
                 </p>
               )}
             </div>
@@ -209,7 +209,7 @@ export default function OrderConfirmationPage() {
           <div className="space-y-3 mt-3">
             {order.comboItems.map((c) => (
               <div key={c.id} className="text-sm">
-                <div className="flex justify-between"><span>{c.comboName} x{c.quantity}</span><span>Rs. {c.subtotal}</span></div>
+                <div className="flex justify-between"><span>{c.comboName} x{c.quantity}</span><span>₹{c.subtotal}</span></div>
                 <p className="text-xs text-muted mt-0.5">{c.selections.map((s) => s.productName).join(", ")}</p>
               </div>
             ))}
@@ -219,27 +219,27 @@ export default function OrderConfirmationPage() {
         <div className="border-t mt-4 pt-3 space-y-1 text-sm">
           <div className="flex justify-between">
             <span>Subtotal</span>
-            <span>Rs. {order.subtotal}</span>
+            <span>₹{order.subtotal}</span>
           </div>
           {order.deliveryFee > 0 && (
             <div className="flex justify-between">
               <span>Delivery fee</span>
-              <span>Rs. {order.deliveryFee}</span>
+              <span>₹{order.deliveryFee}</span>
             </div>
           )}
           {order.discount > 0 && (
             <div className="flex justify-between">
               <span>Discount</span>
-              <span>- Rs. {order.discount}</span>
+              <span>- ₹{order.discount}</span>
             </div>
           )}
           <div className="flex justify-between">
             <span>Tax</span>
-            <span>Rs. {order.tax}</span>
+            <span>₹{order.tax}</span>
           </div>
           <div className="flex justify-between font-semibold text-base pt-1">
             <span>Total</span>
-            <span>Rs. {order.total}</span>
+            <span>₹{order.total}</span>
           </div>
         </div>
       </div>

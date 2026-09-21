@@ -69,6 +69,7 @@ export class CartService {
         id: a.addonId,
         name: a.addon.name,
         price: Number(a.addon.price),
+        quantity: a.quantity,
       })),
     }));
 
@@ -154,18 +155,31 @@ export class CartService {
       }
     }
 
+    // Count how many units of each addon were requested. Duplicates in
+    // addonIds represent quantity > 1 for that addon (e.g. two "Extra Cheese").
+    const addonUnits = new Map<string, number>();
+    for (const id of addonIds) {
+      addonUnits.set(id, (addonUnits.get(id) ?? 0) + 1);
+    }
+
     // Validate addon-group selection limits (e.g. "Add Your Drinks - select up to 3")
-    // and minimum-required counts (e.g. "select at least 1").
+    // and minimum-required counts (e.g. "select at least 1"). Limits count total
+    // units, not distinct addons - two "Extra Cheese" count as 2 towards the max.
     for (const group of product.addonGroups) {
       const groupAddonIds = new Set(group.productAddons.map((pa) => pa.addonId));
-      const selectedInGroup = addonIds.filter((id) => groupAddonIds.has(id));
+      let unitsInGroup = 0;
+      for (const [id, count] of addonUnits) {
+        if (groupAddonIds.has(id)) {
+          unitsInGroup += count;
+        }
+      }
 
-      if (selectedInGroup.length > group.maxSelectable) {
+      if (unitsInGroup > group.maxSelectable) {
         throw new BadRequestException(
           'You can select at most ' + group.maxSelectable + ' item(s) for "' + group.name + '"',
         );
       }
-      if (selectedInGroup.length < group.minSelectable) {
+      if (unitsInGroup < group.minSelectable) {
         throw new BadRequestException(
           'Please select at least ' + group.minSelectable + ' item(s) for "' + group.name + '"',
         );
@@ -177,7 +191,7 @@ export class CartService {
       where: { id: { in: optionIds } },
     });
     const selectedAddons = await this.prisma.addon.findMany({
-      where: { id: { in: addonIds } },
+      where: { id: { in: Array.from(addonUnits.keys()) } },
     });
 
     let unitPrice = Number(product.basePrice);
@@ -185,7 +199,8 @@ export class CartService {
       unitPrice += Number(opt.priceModifier);
     }
     for (const addon of selectedAddons) {
-      unitPrice += Number(addon.price);
+      const units = addonUnits.get(addon.id) ?? 0;
+      unitPrice += Number(addon.price) * units;
     }
 
     const cartItem = await this.prisma.cartItem.create({
@@ -199,7 +214,10 @@ export class CartService {
           create: optionIds.map((id) => ({ optionId: id })),
         },
         selectedAddons: {
-          create: addonIds.map((id) => ({ addonId: id })),
+          create: Array.from(addonUnits.entries()).map(([id, count]) => ({
+            addonId: id,
+            quantity: count,
+          })),
         },
       },
     });
@@ -219,6 +237,88 @@ export class CartService {
         quantity: dto.quantity,
         specialInstructions: dto.specialInstructions,
       },
+    });
+
+    return this.getCart(cartId);
+  }
+
+  async updateAddonQuantity(cartId: string, itemId: string, addonId: string, quantity: number) {
+    const item = await this.prisma.cartItem.findFirst({
+      where: { id: itemId, cartId },
+      include: {
+        product: {
+          include: {
+            addonGroups: { include: { productAddons: true } },
+          },
+        },
+        selectedOptions: { include: { option: true } },
+        selectedAddons: { include: { addon: true } },
+      },
+    });
+    if (!item) {
+      throw new NotFoundException('Cart item not found');
+    }
+
+    const existingLine = item.selectedAddons.find((a) => a.addonId === addonId);
+    if (!existingLine) {
+      throw new NotFoundException('This addon is not on this cart item');
+    }
+
+    // Figure out which addon-group (if any) this addon belongs to, so we can
+    // enforce that group's min/max after the change.
+    const owningGroup = item.product.addonGroups.find((g) =>
+      g.productAddons.some((pa) => pa.addonId === addonId),
+    );
+
+    if (owningGroup) {
+      const groupAddonIds = new Set(owningGroup.productAddons.map((pa) => pa.addonId));
+      let unitsInGroupAfterChange = 0;
+      for (const line of item.selectedAddons) {
+        if (!groupAddonIds.has(line.addonId)) continue;
+        unitsInGroupAfterChange += line.addonId === addonId ? quantity : line.quantity;
+      }
+      if (unitsInGroupAfterChange > owningGroup.maxSelectable) {
+        throw new BadRequestException(
+          'You can select at most ' + owningGroup.maxSelectable + ' item(s) for "' + owningGroup.name + '"',
+        );
+      }
+      if (unitsInGroupAfterChange < owningGroup.minSelectable) {
+        throw new BadRequestException(
+          'Please select at least ' + owningGroup.minSelectable + ' item(s) for "' + owningGroup.name + '"',
+        );
+      }
+    } else if (quantity > 10) {
+      throw new BadRequestException('Quantity is too high for this addon.');
+    }
+
+    if (quantity <= 0) {
+      await this.prisma.cartItemAddon.delete({ where: { id: existingLine.id } });
+    } else {
+      await this.prisma.cartItemAddon.update({
+        where: { id: existingLine.id },
+        data: { quantity },
+      });
+    }
+
+    // Recompute this item's per-unit price from scratch: base price + option
+    // modifiers + (addon price x quantity) for every remaining addon line.
+    let unitPrice = Number(item.product.basePrice);
+    for (const opt of item.selectedOptions) {
+      unitPrice += Number(opt.option.priceModifier);
+    }
+    for (const line of item.selectedAddons) {
+      if (line.addonId === addonId) {
+        if (quantity > 0) {
+          unitPrice += Number(line.addon.price) * quantity;
+        }
+        continue;
+      }
+      unitPrice += Number(line.addon.price) * line.quantity;
+    }
+
+    await this.prisma.cartItem.update({
+      where: { id: itemId },
+      data: { priceSnapshot: unitPrice },
     });
 
     return this.getCart(cartId);

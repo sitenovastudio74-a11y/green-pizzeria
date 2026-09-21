@@ -8,7 +8,7 @@ import CartSuggestions from '../components/CartSuggestions';
 import OrderTypeSelector, { OrderType } from '../components/OrderTypeSelector';
 
 export default function CartPage() {
-  const { cart, loading, updateItem, removeItem, updateComboItem, removeComboItem } = useCart();
+  const { cart, loading, updateItem, removeItem, updateComboItem, removeComboItem, updateAddonQuantity } = useCart();
   const [orderType, setOrderType] = useState<OrderType>('DELIVERY');
   const [deliveryFee, setDeliveryFee] = useState(0);
   const [taxRatePercent, setTaxRatePercent] = useState(5);
@@ -75,15 +75,23 @@ export default function CartPage() {
                 <div className="flex-1 min-w-0">
                   <p className="font-display text-lg text-dark">{item.productName}</p>
 
-                  {item.selectedOptions.length > 0 && (
-                    <p className="text-sm text-muted mt-0.5">
-                      {item.selectedOptions.map((o: any) => o.name).join(', ')}
-                    </p>
-                  )}
-                  {item.selectedAddons.length > 0 && (
-                    <p className="text-sm text-muted">
-                      + {item.selectedAddons.map((a: any) => a.name).join(', ')}
-                    </p>
+                  {(item.selectedOptions.length > 0 || item.selectedAddons.length > 0) && (
+                    <ul className="mt-1.5 flex flex-col gap-0.5">
+                      {item.selectedOptions.map((o: any) => (
+                        <li key={o.id} className="text-sm text-muted">{o.name}{Number(o.priceModifier) > 0 && <span> &middot; &#8377;{o.priceModifier}</span>}</li>
+                      ))}
+                      {item.selectedAddons.map((a: any) => (
+                        <li key={a.id} data-addon-row="1" className="flex items-center justify-between gap-3 pl-3 border-l border-dark/10 text-xs text-muted">
+                          <span className="min-w-0 flex-1">+ {a.name}{Number(a.price) > 0 && <span> &middot; &#8377;{a.price}{(a.quantity ?? 1) > 1 ? " × " + a.quantity : ""}</span>}</span>
+                          <span className="inline-flex items-center gap-1 border border-dark/10 rounded-full px-1 leading-5">
+                            <button type="button" aria-label={"Decrease " + a.name} onClick={() => updateAddonQuantity(item.id, a.id, (a.quantity ?? 1) - 1).catch((e: any) => window.alert(e.message))} className="w-4 h-5 text-dark hover:text-primary">&minus;</button>
+                            <span className="w-3 text-center text-dark">{a.quantity ?? 1}</span>
+                            <button type="button" aria-label={"Increase " + a.name} onClick={() => updateAddonQuantity(item.id, a.id, (a.quantity ?? 1) + 1).catch((e: any) => window.alert(e.message))} className="w-4 h-5 text-dark hover:text-primary">+</button>
+                          </span>
+                          <span className="w-12 text-right text-dark">{Number(a.price) > 0 ? <span>&#8377;{Number(a.price) * (a.quantity ?? 1)}</span> : null}</span>
+                        </li>
+                      ))}
+                    </ul>
                   )}
                   {item.specialInstructions && (
                     <p className="text-sm text-muted italic mt-0.5">"{item.specialInstructions}"</p>
@@ -141,9 +149,11 @@ export default function CartPage() {
                     <p className="text-xs text-primary font-medium mt-0.5">Combo</p>
 
                     {item.selections.length > 0 && (
-                      <p className="text-sm text-muted mt-0.5">
-                        {item.selections.map((s) => s.productName).join(', ')}
-                      </p>
+                      <ul className="mt-1.5 flex flex-col gap-0.5">
+                        {item.selections.map((s, i) => (
+                          <li key={i} className="text-sm text-muted">{s.slotLabel ? s.slotLabel + ": " : ""}{s.productName}</li>
+                        ))}
+                      </ul>
                     )}
 
                     <div className="flex items-center gap-3 mt-3">

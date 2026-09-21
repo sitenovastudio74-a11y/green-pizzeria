@@ -6,7 +6,7 @@ import { apiFetch } from "../../lib/api";
 type Selection = { slotLabel: string; productName: string };
 type ComboItem = { id: string; comboName: string; quantity: number; selections: Selection[] };
 type OptionSnap = { optionName: string };
-type AddonSnap = { addonName: string };
+type AddonSnap = { addonName: string; quantity?: number };
 type Item = {
   id: string;
   productName: string;
@@ -164,7 +164,7 @@ export default function AdminKitchenPage() {
                 <p className="text-xs text-muted">{it.selectedOptions.map((x) => x.optionName).join(", ")}</p>
               )}
               {it.selectedAddons && it.selectedAddons.length > 0 && (
-                <p className="text-xs text-muted">+ {it.selectedAddons.map((x) => x.addonName).join(", ")}</p>
+                <p className="text-xs text-muted">+ {it.selectedAddons.map((x) => x.addonName + ((x.quantity ?? 1) > 1 ? " x" + x.quantity : "")).join(", ")}</p>
               )}
               {it.specialInstructions && <p className="text-xs text-amber-700">Note: {it.specialInstructions}</p>}
             </div>

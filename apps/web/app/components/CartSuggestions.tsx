@@ -17,10 +17,14 @@ type Product = {
   optionGroups: OptionGroup[];
 };
 
+import { createPortal } from "react-dom";
+import ProductCustomizeSheet from "./ProductCustomizeSheet";
+
 export default function CartSuggestions() {
   const { cart, addToCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [addingId, setAddingId] = useState<string | null>(null);
+  const [activeProductId, setActiveProductId] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(API_URL + "/products")
@@ -78,12 +82,12 @@ export default function CartSuggestions() {
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted">&#8377;{product.basePrice}</span>
                 {needsDetail ? (
-                  <Link
-                    href={"/menu/" + product.id}
-                    className="text-xs text-primary font-medium hover:underline"
-                  >
-                    View
-                  </Link>
+                  <>
+                    <button type="button" onClick={() => setActiveProductId(product.id)} className="text-xs text-primary font-medium hover:underline">
+                      Choose
+                    </button>
+                    {activeProductId === product.id && createPortal(<ProductCustomizeSheet productId={product.id} onClose={() => setActiveProductId(null)} />, document.body)}
+                  </>
                 ) : (
                   <button
                     onClick={() => handleQuickAdd(product)}

@@ -1,9 +1,9 @@
-﻿export default function ContactPage() {
+export default function ContactPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
       <h1 className="text-2xl font-semibold mb-2">Contact Us</h1>
       <p className="text-sm text-muted mb-8">
-        Have a question about an order, a complaint, or anything else? We'd
+        Have a question about an order, a complaint, or anything else? We would
         love to hear from you.
       </p>
 
@@ -24,8 +24,8 @@
       <div className="border rounded-lg p-5 mb-4">
         <h2 className="text-sm font-medium mb-1">Email</h2>
         <p className="text-sm text-muted">
-          <a href="mailto:Greenpizzeria01@gmail.com" className="text-green-600 font-medium">
-            Greenpizzeria01@gmail.com
+          <a href="mailto:greenpizzeria01@gmail.com" className="text-green-600 font-medium">
+            greenpizzeria01@gmail.com
           </a>
         </p>
       </div>

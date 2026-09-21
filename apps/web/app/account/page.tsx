@@ -399,7 +399,7 @@ export default function AccountPage() {
                 </div>
                 <div className="flex justify-between gap-3 text-xs text-muted mb-3">
                   <span>{new Date(o.createdAt).toLocaleString("en-IN")}</span>
-                  <span>Rs. {o.total}</span>
+                  <span>₹{o.total}</span>
                 </div>
                 <Link href={"/track-order/" + o.id} className="text-sm text-amber-700 font-medium">Track order</Link>
               </div>
@@ -417,7 +417,7 @@ export default function AccountPage() {
                 </div>
                 <div className="flex justify-between gap-3 text-xs text-muted mb-3">
                   <span>{new Date(o.createdAt).toLocaleString("en-IN")}</span>
-                  <span>Rs. {o.total}</span>
+                  <span>₹{o.total}</span>
                 </div>
                 <div className="flex gap-4">
                   {o.status !== "PAYMENT_FAILED" && (

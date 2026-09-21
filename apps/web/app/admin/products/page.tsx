@@ -266,7 +266,7 @@ export default function AdminProductsPage() {
           </span>
         </div>
         <p className="text-sm text-muted mb-1">
-          Rs. {product.basePrice}
+          ₹{product.basePrice}
           {product.isFeatured ? " · Featured" : ""}
         </p>
         <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm mt-2">
@@ -377,7 +377,7 @@ export default function AdminProductsPage() {
             </div>
             <div className="flex flex-wrap gap-4">
               <div className="flex-1 min-w-[120px]">
-                <label className="block text-xs text-muted mb-1">Base price (Rs.)</label>
+                <label className="block text-xs text-muted mb-1">Base price (₹)</label>
                 <input
                   value={form.basePrice}
                   onChange={(e) => setForm({ ...form, basePrice: e.target.value })}

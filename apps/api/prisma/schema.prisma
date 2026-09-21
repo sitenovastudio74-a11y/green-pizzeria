@@ -286,6 +286,8 @@ model CartItemAddon {
   addonId    String
   addon      Addon    @relation(fields: [addonId], references: [id])
 
+  quantity   Int      @default(1)
+
   @@map("cart_item_addons")
 }
 
@@ -362,6 +364,8 @@ model OrderItemAddon {
 
   addonName String
   price     Decimal @db.Decimal(10, 2)
+
+  quantity  Int     @default(1)
 
   @@map("order_item_addons")
 }

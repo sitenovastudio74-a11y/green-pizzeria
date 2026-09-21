@@ -86,11 +86,12 @@ export class CheckoutService {
         };
       });
       const addonSnapshots = item.selectedAddons.map((sa) => {
-        unitPrice += Number(sa.addon.price);
+        unitPrice += Number(sa.addon.price) * sa.quantity;
         return {
           addonId: sa.addonId,
           addonName: sa.addon.name,
           price: sa.addon.price,
+          quantity: sa.quantity,
         };
       });
 
@@ -209,6 +210,7 @@ export class CheckoutService {
               addonId: addon.addonId,
               addonName: addon.addonName,
               price: addon.price,
+              quantity: addon.quantity,
             },
           });
         }

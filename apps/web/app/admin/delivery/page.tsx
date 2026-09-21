@@ -210,7 +210,7 @@ export default function AdminDeliveryPage() {
           <span className="font-semibold">{o.orderNumber}</span>
           <span className="text-xs border rounded-full px-2 py-0.5">{STATUS_TEXT[o.status] || o.status}</span>
         </div>
-        <p className="text-xs text-muted mt-1">Rs. {o.total} - {new Date(o.createdAt).toLocaleString("en-IN")}</p>
+        <p className="text-xs text-muted mt-1">₹{o.total} - {new Date(o.createdAt).toLocaleString("en-IN")}</p>
         {o.user && <p className="text-sm mt-2">{o.user.name}{o.user.phone ? " - " + o.user.phone : ""}</p>}
         {address && <p className="text-xs text-muted mt-1">{address.fullAddress}{address.landmark ? ", " + address.landmark : ""}, {address.city}, {address.state} {address.pincode}</p>}
         {d && (d.courierName || d.courierPhone) && <p className="text-sm mt-2">Rider: {d.courierName}{d.courierPhone ? " - " + d.courierPhone : ""}</p>}

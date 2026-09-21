@@ -344,7 +344,7 @@ export default function AdminCombosPage() {
                     {combo.isActive ? "Active" : "Inactive"}
                   </span>
                 </div>
-                <p className="text-sm text-muted mb-1">Rs. {combo.price}</p>
+                <p className="text-sm text-muted mb-1">₹{combo.price}</p>
                 <p className="text-xs text-muted mb-3">
                   {combo.slots.length} slot{combo.slots.length === 1 ? "" : "s"}
                 </p>
@@ -403,7 +403,7 @@ export default function AdminCombosPage() {
             </div>
             <div className="flex gap-4">
               <div className="flex-1">
-                <label className="block text-xs text-muted mb-1">Price (Rs.)</label>
+                <label className="block text-xs text-muted mb-1">Price (₹)</label>
                 <input
                   value={form.price}
                   onChange={(e) => setForm({ ...form, price: e.target.value })}

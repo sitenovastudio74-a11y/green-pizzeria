@@ -45,7 +45,7 @@ export default function StoryPage() {
       <p className="text-muted">
         Have a question, feedback, or a special request? We would love to hear
         from you - visit our{" "}
-        <a href="/contact" className="text-green-600 font-medium">Contact page</a>
+        <a href="/contact" className="text-green-600 font-medium">Contact Us page</a>
         {" "}for our phone, email, and address.
       </p>
     </div>

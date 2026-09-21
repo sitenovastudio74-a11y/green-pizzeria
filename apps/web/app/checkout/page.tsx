@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -270,7 +270,7 @@ export default function CheckoutPage() {
   if (!cart || (cart.items.length === 0 && (cart.comboItems || []).length === 0)) {
     return (
       <div className="p-8 text-center">
-        <p className="mb-4">Your cart is empty.</p>
+        <p className="mb-4">Your cart is empty</p>
         <button
           onClick={() => router.push("/menu")}
           className="bg-green-600 text-white rounded-lg px-6 py-2 font-medium"
@@ -432,7 +432,7 @@ export default function CheckoutPage() {
                 {combo.comboName} x{combo.quantity}
                 <span className="block text-xs opacity-70">{combo.selections.map((s) => s.productName).join(", ")}</span>
               </span>
-              <span>Rs. {combo.lineTotal}</span>
+              <span>₹{combo.lineTotal}</span>
             </div>
           ))}
           {cart.items.map((item) => (
@@ -440,28 +440,28 @@ export default function CheckoutPage() {
               <span>
                 {item.productName} x{item.quantity}
               </span>
-              <span>Rs. {item.lineTotal}</span>
+              <span>₹{item.lineTotal}</span>
             </div>
           ))}
         </div>
         <div className="border-t mt-3 pt-3 space-y-1 text-sm">
           <div className="flex justify-between">
             <span>Subtotal</span>
-            <span>Rs. {subtotal}</span>
+            <span>₹{subtotal}</span>
           </div>
           {orderType === "DELIVERY" && (
             <div className="flex justify-between">
               <span>Delivery fee</span>
-              <span>Rs. {deliveryFee}</span>
+              <span>₹{deliveryFee}</span>
             </div>
           )}
           <div className="flex justify-between">
             <span>Tax</span>
-            <span>Rs. {tax}</span>
+            <span>₹{tax}</span>
           </div>
           <div className="flex justify-between font-semibold text-base pt-1">
             <span>Total</span>
-            <span>Rs. {total}</span>
+            <span>₹{total}</span>
           </div>
         </div>
       </div>
@@ -483,7 +483,7 @@ export default function CheckoutPage() {
           disabled={placingOrder}
           className="w-full max-w-lg mx-auto block bg-green-600 text-white rounded-lg py-3 font-medium disabled:opacity-50"
         >
-          {placingOrder ? "Placing order..." : `Place order - Rs. ${total}`}
+          {placingOrder ? "Placing order..." : `Place order - ₹${total}`}
         </button>
       </div>
     </div>

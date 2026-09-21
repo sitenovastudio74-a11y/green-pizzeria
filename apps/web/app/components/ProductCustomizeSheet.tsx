@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
@@ -397,7 +397,7 @@ export default function ProductCustomizeSheet({ productId, onClose }: Props) {
                     ? "✓ Added"
                     : status === "adding"
                     ? "Adding..."
-                    : `Add item · Rs. ${lineTotal.toFixed(0)}`}
+                    : `Add item · ₹${lineTotal.toFixed(0)}`}
                 </button>
               </div>
             </>

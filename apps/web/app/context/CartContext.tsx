@@ -14,7 +14,7 @@ type CartItem = {
   unitPrice: number;
   lineTotal: number;
   selectedOptions: { id: string; name: string; priceModifier: number }[];
-  selectedAddons: { id: string; name: string; price: number }[];
+  selectedAddons: { id: string; name: string; price: number; quantity?: number }[];
 };
 
 type CartComboSelection = { slotLabel: string; productId: string; productName: string };
@@ -46,6 +46,7 @@ type CartContextValue = {
   addComboToCart: (comboId: string, selections: { comboSlotId: string; productId: string }[], quantity?: number) => Promise<void>;
   updateComboItem: (itemId: string, quantity: number) => Promise<void>;
   removeComboItem: (itemId: string) => Promise<void>;
+  updateAddonQuantity: (itemId: string, addonId: string, quantity: number) => Promise<void>;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -154,6 +155,38 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setCart(data);
   }, []);
 
+  const updateAddonQuantity = useCallback(async (itemId: string, addonId: string, quantity: number) => {
+    // optimistic: show the new add-on quantity and price immediately; the server response replaces it below
+    setCart((prev) => {
+      if (!prev) return prev;
+      const items = prev.items.map((i) => {
+        if (i.id !== itemId) return i;
+        const old = i.selectedAddons.find((a) => a.id === addonId);
+        const oldQty = old && old.quantity ? old.quantity : 1;
+        const addonPrice = old ? Number(old.price) : 0;
+        const newQty = Math.max(quantity, 0);
+        const selectedAddons = newQty === 0 ? i.selectedAddons.filter((a) => a.id !== addonId) : i.selectedAddons.map((a) => (a.id === addonId ? { ...a, quantity: newQty } : a));
+        const unitPrice = i.unitPrice + addonPrice * (newQty - oldQty);
+        return { ...i, selectedAddons, unitPrice, lineTotal: unitPrice * i.quantity };
+      });
+      const combos = prev.comboItems || [];
+      const subtotal = items.reduce((s, i) => s + i.lineTotal, 0) + combos.reduce((s, c) => s + c.lineTotal, 0);
+      return { ...prev, items, subtotal };
+    });
+    const res = await apiFetch("/cart/items/" + itemId + "/addons/" + addonId, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ quantity }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => null);
+      await refreshCart();
+      throw new Error((err && err.message) || 'Could not update add-on');
+    }
+    const data = await res.json();
+    setCart(data);
+  }, [refreshCart]);
+
   const removeComboItem = useCallback(async (itemId: string) => {
     const res = await apiFetch("/cart/combo-items/" + itemId, {
       method: 'DELETE',
@@ -164,7 +197,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <CartContext.Provider value={{ cart, loading, refreshCart, addToCart, updateItem, removeItem, addComboToCart, updateComboItem, removeComboItem }}>
+    <CartContext.Provider value={{ cart, loading, refreshCart, addToCart, updateItem, removeItem, addComboToCart, updateComboItem, removeComboItem, updateAddonQuantity }}>
       {children}
     </CartContext.Provider>
   );

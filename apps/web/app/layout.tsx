@@ -34,7 +34,7 @@ const spirax = Spirax({
 
 export const metadata: Metadata = {
   title: "Green Pizzeria - A Slice of Italy",
-  description: "100% Vegetarian Napoletana pizza, made fresh for you.",
+  description: "100% vegetarian Napoletana pizza, made fresh for you.",
 };
 
 export const viewport: Viewport = {

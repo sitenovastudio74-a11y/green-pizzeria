@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
@@ -250,7 +250,7 @@ export default function OffersPage() {
                     : adding
                     ? "Adding..."
                     : allSlotsComplete
-                    ? `Add to cart · Rs. ${activeCombo.price}`
+                    ? `Add to cart · ₹${activeCombo.price}`
                     : "Complete your selection"}
                 </button>
               </div>

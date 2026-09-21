@@ -322,7 +322,7 @@ export default function AdminOptionsPage() {
                     </div>
                     {g.options.map((o) => (
                       <div key={o.id} className="flex justify-between items-center text-sm py-1">
-                        <span>{o.name} {o.priceModifier ? "(+ Rs. " + o.priceModifier + ")" : ""}</span>
+                        <span>{o.name} {o.priceModifier ? "(+ ₹" + o.priceModifier + ")" : ""}</span>
                         <button onClick={() => handleDeleteOption(o.id)} className="text-xs text-red-600">Remove</button>
                       </div>
                     ))}
@@ -334,7 +334,7 @@ export default function AdminOptionsPage() {
                         className="flex-1 border rounded-lg px-2 py-1.5 text-sm"
                       />
                       <input
-                        placeholder="+Rs."
+                        placeholder="+₹"
                         value={newOptionForm[g.id]?.priceModifier || ""}
                         onChange={(e) => setNewOptionForm((prev) => ({ ...prev, [g.id]: { name: prev[g.id]?.name || "", priceModifier: e.target.value } }))}
                         className="w-20 border rounded-lg px-2 py-1.5 text-sm"
@@ -377,7 +377,7 @@ export default function AdminOptionsPage() {
                       </div>
                       {g.productAddons.map((pa) => (
                         <div key={pa.id} className="flex justify-between items-center text-sm py-1">
-                          <span>{pa.addon.name} (+Rs. {pa.addon.price})</span>
+                          <span>{pa.addon.name} (+₹{pa.addon.price})</span>
                           <button onClick={() => handleUnlinkAddon(pa.addonId)} className="text-xs text-red-600">Unlink</button>
                         </div>
                       ))}
@@ -389,7 +389,7 @@ export default function AdminOptionsPage() {
                         >
                           <option value="">Select addon to link...</option>
                           {availableToLink.map((a) => (
-                            <option key={a.id} value={a.id}>{a.name} (Rs. {a.price})</option>
+                            <option key={a.id} value={a.id}>{a.name} (₹{a.price})</option>
                           ))}
                         </select>
                         <button onClick={() => handleLinkAddon(g.id)} className="text-sm text-green-600 font-medium shrink-0">Link</button>
@@ -458,7 +458,7 @@ export default function AdminOptionsPage() {
                 </>
               ) : (
                 <>
-                  <span className="text-sm">{a.name} - Rs. {a.price}</span>
+                  <span className="text-sm">{a.name} - ₹{a.price}</span>
                   <div className="flex gap-3 shrink-0">
                     <button onClick={() => startEditAddon(a)} className="text-sm text-green-600 font-medium">Edit</button>
                     <button onClick={() => handleDeleteAddon(a.id)} className="text-sm text-red-600 font-medium">Delete</button>

@@ -1,4 +1,4 @@
-﻿export default function PrivacyPolicyPage() {
+export default function PrivacyPolicyPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
       <h1 className="text-2xl font-semibold mb-2">Privacy Policy</h1>
@@ -59,8 +59,8 @@
           +91 97118 06505
         </a>
         , or email{" "}
-        <a href="mailto:Greenpizzeria01@gmail.com" className="text-green-600 font-medium">
-          Greenpizzeria01@gmail.com
+        <a href="mailto:greenpizzeria01@gmail.com" className="text-green-600 font-medium">
+          greenpizzeria01@gmail.com
         </a>
         .
       </p>
@@ -81,8 +81,8 @@
         </a>
         <br />
         Email:{" "}
-        <a href="mailto:Greenpizzeria01@gmail.com" className="text-green-600 font-medium">
-          Greenpizzeria01@gmail.com
+        <a href="mailto:greenpizzeria01@gmail.com" className="text-green-600 font-medium">
+          greenpizzeria01@gmail.com
         </a>
       </p>
       <p className="text-sm text-muted mb-3">

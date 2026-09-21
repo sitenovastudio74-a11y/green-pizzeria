@@ -33,7 +33,7 @@ export default function Footer() {
           <div className="flex flex-col gap-2 text-sm text-cream-soft/80 min-w-0">
             <p>Ashok Vihar, New Delhi</p>
             <p>+91 97118 06505</p>
-            <p className="break-words">Greenpizzeria01@gmail.com</p>
+            <p className="break-words">greenpizzeria01@gmail.com</p>
           </div>
         </div>
 

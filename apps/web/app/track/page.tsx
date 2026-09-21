@@ -53,7 +53,7 @@ function renderCard(o: OrderSummary) {
       </div>
       <div className="flex justify-between gap-3 text-xs text-muted">
         <span>{ORDER_TYPE_LABELS[o.orderType]} - {new Date(o.createdAt).toLocaleString("en-IN")}</span>
-        <span>Rs. {o.total}</span>
+        <span>₹{o.total}</span>
       </div>
       <p className="text-sm text-green-600 font-medium mt-2">Track order</p>
     </Link>

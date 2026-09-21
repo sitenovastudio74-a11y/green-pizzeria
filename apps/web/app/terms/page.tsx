@@ -1,4 +1,4 @@
-﻿export default function TermsPage() {
+export default function TermsPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
       <h1 className="text-2xl font-semibold mb-2">Terms and Conditions</h1>
@@ -39,7 +39,7 @@
         Estimated preparation and delivery times shown on the app are
         estimates, not guarantees, and may vary due to order volume, weather,
         or circumstances beyond our control. You can track your order's
-        status from the Track Order page at any time after placing it.
+        status from the Track order page at any time after placing it.
       </p>
 
       <h2 className="text-lg font-medium mt-6 mb-2">5. Cancellations and refunds</h2>

@@ -17,6 +17,7 @@ import { AddToCartDto } from './dto/add-to-cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 import { AddComboToCartDto } from './dto/add-combo-to-cart.dto';
 import { UpdateCartComboItemDto } from './dto/update-cart-combo-item.dto';
+import { UpdateCartItemAddonDto } from './dto/update-cart-item-addon.dto';
 
 @Controller('cart')
 export class CartController {
@@ -88,6 +89,18 @@ export class CartController {
   ) {
     const cart = await this.resolveCart(req, res);
     return this.cartService.updateItem(cart.id, itemId, dto);
+  }
+
+  @Patch('items/:itemId/addons/:addonId')
+  async updateItemAddon(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+    @Param('itemId') itemId: string,
+    @Param('addonId') addonId: string,
+    @Body() dto: UpdateCartItemAddonDto,
+  ) {
+    const cart = await this.resolveCart(req, res);
+    return this.cartService.updateAddonQuantity(cart.id, itemId, addonId, dto.quantity);
   }
 
   @Delete('items/:itemId')

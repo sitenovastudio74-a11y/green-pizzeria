@@ -1,4 +1,4 @@
-﻿export default function RefundPolicyPage() {
+export default function RefundPolicyPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
       <h1 className="text-2xl font-semibold mb-2">Cancellation and Refunds Policy</h1>
@@ -13,10 +13,10 @@
       <h2 className="text-lg font-medium mt-6 mb-2">Cancelling an order</h2>
       <p className="text-sm text-muted mb-3">
         You can cancel an order for a full refund only while it is still in
-        the "Confirmed" stage, before preparation has started. Once an order
+        the "Order confirmed" stage, before preparation has started. Once an order
         moves to "Preparing", it can no longer be cancelled, since the kitchen
         has already begun making your food. You can check your order's
-        current stage at any time from the Track Order page.
+        current stage at any time from the Track order page.
       </p>
 
       <h2 className="text-lg font-medium mt-6 mb-2">If an item is unavailable</h2>

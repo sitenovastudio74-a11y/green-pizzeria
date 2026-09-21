@@ -56,7 +56,7 @@ export default function FeaturedProducts() {
                 )}
               </div>
               <span className="text-sm sm:text-base text-dark font-medium">{product.name}</span>
-              <span className="text-sm text-muted">Rs. {product.basePrice}</span>
+              <span className="text-sm text-muted">₹{product.basePrice}</span>
             </Link>
           </motion.div>
         ))}

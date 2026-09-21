@@ -24,7 +24,7 @@ async function getJson(path: string): Promise<any> {
 }
 
 function money(n: number): string {
-  return "Rs. " + Number(n || 0).toLocaleString("en-IN");
+  return "₹" + Number(n || 0).toLocaleString("en-IN");
 }
 
 export default function AdminDashboardPage() {
