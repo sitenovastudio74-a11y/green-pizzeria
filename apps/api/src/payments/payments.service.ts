@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException, ForbiddenException 
 import { PrismaService } from '../prisma/prisma.service';
 import { OrdersService } from '../orders/orders.service';
 import { RazorpayProvider } from './providers/razorpay.provider';
+import { TelegramService } from '../telegram/telegram.service';
 import { OrderStatus, PaymentStatus } from '@prisma/client';
 
 @Injectable()
@@ -10,6 +11,7 @@ export class PaymentsService {
     private prisma: PrismaService,
     private ordersService: OrdersService,
     private razorpayProvider: RazorpayProvider,
+    private telegramService: TelegramService,
   ) {}
 
   async createRazorpayOrder(userId: string, orderId: string) {
@@ -102,6 +104,7 @@ export class PaymentsService {
     });
 
     await this.ordersService.updateStatus(orderId, OrderStatus.PAYMENT_SUCCESS);
+    this.telegramService.sendOrderNotification(orderId).catch(() => {});
     await this.clearCartForOrder(orderId);
 
     return { success: true, message: 'Payment verified successfully' };
@@ -150,6 +153,7 @@ export class PaymentsService {
           },
         });
         await this.ordersService.updateStatus(payment.orderId, OrderStatus.PAYMENT_SUCCESS);
+        this.telegramService.sendOrderNotification(payment.orderId).catch(() => {});
         await this.clearCartForOrder(payment.orderId);
       }
     }
