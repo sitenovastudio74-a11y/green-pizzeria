@@ -12,5 +12,6 @@ import { OrdersModule } from '../orders/orders.module';
   imports: [AuthModule, OrdersModule],
   providers: [DeliveryService, ManualDeliveryProvider, UberDirectProvider, DeliveryPollingService],
   controllers: [DeliveryController, UberWebhookController],
+  exports: [UberDirectProvider],
 })
 export class DeliveryModule {}

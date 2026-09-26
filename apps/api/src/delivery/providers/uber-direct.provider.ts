@@ -154,4 +154,72 @@ export class UberDirectProvider implements DeliveryProviderInterface {
     const data = await response.json();
     return { status: String(data.status || '').toLowerCase(), data };
   }
+  // Returns a live delivery-price quote for a given dropoff address, without
+  // creating an actual delivery. Used by checkout to show real-time pricing.
+  // Returns { deliverable: false } if Uber rejects the address as out of range.
+  async getQuote(dropoffAddress: {
+    fullAddress: string;
+    city: string;
+    state: string;
+    pincode: string;
+  }): Promise<
+    | { deliverable: true; fee: number; currency: string; quoteId: string; expiresAt: string }
+    | { deliverable: false; reason: string }
+  > {
+    const pickupSetting = await this.prisma.setting.findUnique({
+      where: { key: 'pickup_address' },
+    });
+    if (!pickupSetting) {
+      throw new BadRequestException('pickup_address setting is not configured');
+    }
+    const pickup = JSON.parse(pickupSetting.value);
+
+    const accessToken = await this.getAccessToken();
+    const customerId = process.env.UBER_CUSTOMER_ID;
+
+    const pickupAddressStr = JSON.stringify({
+      street_address: [pickup.street],
+      city: pickup.city,
+      state: pickup.state,
+      zip_code: pickup.zip,
+      country: 'IN',
+    });
+
+    const dropoffAddressStr = JSON.stringify({
+      street_address: [dropoffAddress.fullAddress],
+      city: dropoffAddress.city,
+      state: dropoffAddress.state,
+      zip_code: dropoffAddress.pincode,
+      country: 'IN',
+    });
+
+    const quoteResponse = await fetch(UBER_API_BASE + customerId + '/delivery_quotes', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + accessToken,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        pickup_address: pickupAddressStr,
+        dropoff_address: dropoffAddressStr,
+      }),
+    });
+
+    if (!quoteResponse.ok) {
+      const errorData = await quoteResponse.json().catch(() => null);
+      if (errorData?.code === 'address_undeliverable') {
+        return { deliverable: false, reason: 'out_of_range' };
+      }
+      return { deliverable: false, reason: 'quote_failed' };
+    }
+
+    const quoteData = await quoteResponse.json();
+    return {
+      deliverable: true,
+      fee: Math.round(quoteData.fee / 100),
+      currency: quoteData.currency || 'INR',
+      quoteId: quoteData.id,
+      expiresAt: quoteData.expires,
+    };
+  }
 }

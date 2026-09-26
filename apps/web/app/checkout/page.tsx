@@ -69,6 +69,8 @@ export default function CheckoutPage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loadingAddresses, setLoadingAddresses] = useState(false);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [deliveryQuote, setDeliveryQuote] = useState<{ deliverable: boolean; fee?: number; message?: string } | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
   const [showAddAddress, setShowAddAddress] = useState(false);
 
   const [newLabel, setNewLabel] = useState("HOME");
@@ -117,6 +119,25 @@ export default function CheckoutPage() {
       .finally(() => setLoadingAddresses(false));
   }, [checkingAuth, orderType]);
 
+  useEffect(() => {
+    if (checkingAuth || orderType !== "DELIVERY" || !selectedAddressId) {
+      setDeliveryQuote(null);
+      return;
+    }
+
+    setQuoteLoading(true);
+    setDeliveryQuote(null);
+    apiFetch("/checkout/delivery-quote", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ addressId: selectedAddressId }),
+    })
+      .then((r) => r.json())
+      .then((data) => setDeliveryQuote(data))
+      .catch(() => setDeliveryQuote({ deliverable: false, message: "Could not fetch delivery fee. Please try again." }))
+      .finally(() => setQuoteLoading(false));
+  }, [checkingAuth, orderType, selectedAddressId]);
+
   async function handleAddAddress(e: React.FormEvent) {
     e.preventDefault();
     setSavingAddress(true);
@@ -159,13 +180,19 @@ export default function CheckoutPage() {
 
   const subtotal = cart ? cart.items.reduce((sum, i) => sum + i.lineTotal, 0) + (cart.comboItems || []).reduce((sum, c) => sum + c.lineTotal, 0) : 0;
   const tax = Math.round((subtotal * taxRatePercent) / 100);
-  const total = subtotal + deliveryFee + tax;
+  const effectiveDeliveryFee = orderType === "DELIVERY" && deliveryQuote?.deliverable ? (deliveryQuote.fee ?? 0) : 0;
+  const total = subtotal + (orderType === "DELIVERY" ? effectiveDeliveryFee : 0) + tax;
 
   async function handlePlaceOrder() {
     setError(null);
 
     if (orderType === "DELIVERY" && !selectedAddressId) {
       setError("Please select or add a delivery address.");
+      return;
+    }
+
+    if (orderType === "DELIVERY" && deliveryQuote && !deliveryQuote.deliverable) {
+      setError(deliveryQuote.message || "Delivery is not available to this address.");
       return;
     }
 
@@ -452,8 +479,19 @@ export default function CheckoutPage() {
           {orderType === "DELIVERY" && (
             <div className="flex justify-between">
               <span>Delivery fee</span>
-              <span>₹{deliveryFee}</span>
+              <span>
+                {quoteLoading
+                  ? "Calculating..."
+                  : deliveryQuote?.deliverable
+                  ? "₹" + deliveryQuote.fee
+                  : deliveryQuote && !deliveryQuote.deliverable
+                  ? "N/A"
+                  : "₹0"}
+              </span>
             </div>
+          )}
+          {orderType === "DELIVERY" && deliveryQuote && !deliveryQuote.deliverable && (
+            <p className="text-xs text-red-600">{deliveryQuote.message}</p>
           )}
           <div className="flex justify-between">
             <span>Tax</span>
@@ -480,7 +518,7 @@ export default function CheckoutPage() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
         <button
           onClick={handlePlaceOrder}
-          disabled={placingOrder}
+          disabled={placingOrder || (orderType === "DELIVERY" && (quoteLoading || (deliveryQuote ? !deliveryQuote.deliverable : false)))}
           className="w-full max-w-lg mx-auto block bg-green-600 text-white rounded-lg py-3 font-medium disabled:opacity-50"
         >
           {placingOrder ? "Placing order..." : `Place order - ₹${total}`}

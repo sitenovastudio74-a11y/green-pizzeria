@@ -16,4 +16,12 @@ export class CheckoutController {
   ) {
     return this.checkoutService.checkout(req.user.userId, dto);
   }
+
+  @Post('delivery-quote')
+  async getDeliveryQuote(
+    @Req() req: Request & { user: { userId: string } },
+    @Body() dto: { addressId: string },
+  ) {
+    return this.checkoutService.getDeliveryQuote(req.user.userId, dto.addressId);
+  }
 }

@@ -20,8 +20,7 @@ export default function CartPage() {
   const items = cart?.items ?? [];
   const comboItems = cart?.comboItems ?? [];
   const subtotal = cart?.subtotal ?? 0;
-  const tax = Math.round((subtotal * taxRatePercent) / 100);
-  const total = subtotal + deliveryFee + tax;
+  const total = subtotal;
 
   if (items.length === 0 && comboItems.length === 0) {
     return (
@@ -195,16 +194,6 @@ export default function CartPage() {
           <div className="flex justify-between text-muted text-sm">
             <span>Subtotal</span>
             <span>&#8377;{subtotal}</span>
-          </div>
-          {orderType === 'DELIVERY' && (
-            <div className="flex justify-between text-muted text-sm">
-              <span>Delivery fee</span>
-              <span>&#8377;{deliveryFee}</span>
-            </div>
-          )}
-          <div className="flex justify-between text-muted text-sm">
-            <span>Tax</span>
-            <span>&#8377;{tax}</span>
           </div>
           <div className="flex justify-between text-dark font-medium pt-2 border-t border-dark/10">
             <span>Total</span>

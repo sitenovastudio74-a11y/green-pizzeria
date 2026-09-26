@@ -3,10 +3,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateCheckoutDto } from './dto/create-checkout.dto';
 import { OrderType } from '@prisma/client';
 import * as crypto from 'crypto';
+import { UberDirectProvider } from '../delivery/providers/uber-direct.provider';
 
 @Injectable()
 export class CheckoutService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private uberDirectProvider: UberDirectProvider,
+  ) {}
 
   private async getSetting(key: string, fallback: number) {
     const setting = await this.prisma.setting.findUnique({ where: { key } });
@@ -15,6 +19,34 @@ export class CheckoutService {
     }
     const parsed = Number(setting.value);
     return isNaN(parsed) ? fallback : parsed;
+  }
+
+  async getDeliveryQuote(userId: string, addressId: string) {
+    const address = await this.prisma.address.findFirst({
+      where: { id: addressId, userId },
+    });
+    if (!address) {
+      throw new NotFoundException('Address not found');
+    }
+
+    const result = await this.uberDirectProvider.getQuote({
+      fullAddress: address.fullAddress,
+      city: address.city,
+      state: address.state,
+      pincode: address.pincode,
+    });
+
+    if (!result.deliverable) {
+      return { deliverable: false, message: 'Sorry, we only deliver within 16 km of our store.' };
+    }
+
+    return {
+      deliverable: true,
+      fee: result.fee,
+      currency: result.currency,
+      quoteId: result.quoteId,
+      expiresAt: result.expiresAt,
+    };
   }
 
   async checkout(userId: string, dto: CreateCheckoutDto) {
