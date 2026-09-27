@@ -4,10 +4,14 @@ import { AddToCartDto } from './dto/add-to-cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
 import { AddComboToCartDto } from './dto/add-combo-to-cart.dto';
 import * as crypto from 'crypto';
+import { PricingService } from '../pricing/pricing.service';
 
 @Injectable()
 export class CartService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private pricingService: PricingService,
+  ) {}
 
   async getOrCreateCart(userId: string | null, guestToken: string | null) {
     if (userId) {
@@ -194,7 +198,11 @@ export class CartService {
       where: { id: { in: Array.from(addonUnits.keys()) } },
     });
 
-    let unitPrice = Number(product.basePrice);
+    const discountPercent = await this.pricingService.getEffectiveDiscountPercent(
+      product.discountPercent,
+      product.discountDisabled,
+    );
+    let unitPrice = this.pricingService.applyDiscount(Number(product.basePrice), discountPercent);
     for (const opt of selectedOptions) {
       unitPrice += Number(opt.priceModifier);
     }
@@ -302,7 +310,11 @@ export class CartService {
 
     // Recompute this item's per-unit price from scratch: base price + option
     // modifiers + (addon price x quantity) for every remaining addon line.
-    let unitPrice = Number(item.product.basePrice);
+    const discountPercent = await this.pricingService.getEffectiveDiscountPercent(
+      item.product.discountPercent,
+      item.product.discountDisabled,
+    );
+    let unitPrice = this.pricingService.applyDiscount(Number(item.product.basePrice), discountPercent);
     for (const opt of item.selectedOptions) {
       unitPrice += Number(opt.option.priceModifier);
     }
@@ -378,7 +390,10 @@ export class CartService {
         cartId,
         comboId: combo.id,
         quantity,
-        priceSnapshot: combo.price,
+        priceSnapshot: this.pricingService.applyDiscount(
+          Number(combo.price),
+          await this.pricingService.getEffectiveDiscountPercent(combo.discountPercent, combo.discountDisabled),
+        ),
         selections: {
           create: dto.selections.map((s) => ({
             comboSlotId: s.comboSlotId,

@@ -22,6 +22,8 @@ type Product = {
   isAvailable: boolean;
   isFeatured: boolean;
   sortOrder: number;
+  discountPercent: number;
+  discountDisabled: boolean;
 };
 
 type FormState = {
@@ -32,6 +34,8 @@ type FormState = {
   isFeatured: boolean;
   isAvailable: boolean;
   sortOrder: string;
+  discountPercent: string;
+  discountDisabled: boolean;
 };
 
 const EMPTY_FORM: FormState = {
@@ -42,6 +46,8 @@ const EMPTY_FORM: FormState = {
   isFeatured: false,
   isAvailable: true,
   sortOrder: "0",
+  discountPercent: "0",
+  discountDisabled: false,
 };
 
 async function readError(r: Response, fallback: string): Promise<string> {
@@ -130,6 +136,8 @@ export default function AdminProductsPage() {
       isFeatured: product.isFeatured,
       isAvailable: product.isAvailable,
       sortOrder: String(product.sortOrder),
+      discountPercent: String(product.discountPercent ?? 0),
+      discountDisabled: product.discountDisabled ?? false,
     });
     setImageFile(null);
     setExistingImageUrl(product.imageUrl);
@@ -169,6 +177,8 @@ export default function AdminProductsPage() {
       fd.append("basePrice", form.basePrice);
       fd.append("isFeatured", String(form.isFeatured));
       fd.append("sortOrder", form.sortOrder || "0");
+      fd.append("discountPercent", form.discountPercent || "0");
+      fd.append("discountDisabled", String(form.discountDisabled));
       if (editingId) {
         fd.append("isAvailable", String(form.isAvailable));
       }
@@ -394,6 +404,25 @@ export default function AdminProductsPage() {
                   inputMode="numeric"
                 />
               </div>
+              <div className="flex-1 min-w-[120px]">
+                <label className="block text-xs text-muted mb-1">Discount %</label>
+                <input
+                  value={form.discountPercent}
+                  onChange={(e) => setForm({ ...form, discountPercent: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                  inputMode="numeric"
+                />
+              </div>
+            <div className="flex flex-wrap gap-x-6 gap-y-2">
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={form.discountDisabled}
+                  onChange={(e) => setForm({ ...form, discountDisabled: e.target.checked })}
+                />
+                Disable discount for this item
+              </label>
+            </div>
             </div>
             <div className="flex flex-wrap gap-x-6 gap-y-2">
               <label className="flex items-center gap-2 text-sm">

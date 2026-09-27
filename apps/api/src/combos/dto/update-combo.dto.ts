@@ -1,4 +1,4 @@
-﻿import { IsString, IsOptional, IsNumber, IsBoolean, IsInt, MinLength } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsBoolean, IsInt, MinLength } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class UpdateComboDto {
@@ -30,6 +30,16 @@ export class UpdateComboDto {
   @Type(() => Number)
   @IsInt()
   sortOrder?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  discountPercent?: number;
+
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  discountDisabled?: boolean;
 
   @IsOptional()
   @IsString()

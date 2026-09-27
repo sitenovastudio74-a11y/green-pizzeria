@@ -1,5 +1,5 @@
 import { IsString, IsOptional, IsNumber, IsBoolean, IsInt, MinLength, IsUUID } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 export class CreateProductDto {
   @IsUUID()
@@ -18,7 +18,7 @@ export class CreateProductDto {
   basePrice: number;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(({ value }) => value === true || value === 'true')
   @IsBoolean()
   isFeatured?: boolean;
 
@@ -26,4 +26,14 @@ export class CreateProductDto {
   @Type(() => Number)
   @IsInt()
   sortOrder?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  discountPercent?: number;
+
+  @IsOptional()
+  @Transform(({ value }) => value === true || value === 'true')
+  @IsBoolean()
+  discountDisabled?: boolean;
 }

@@ -33,6 +33,8 @@ type Combo = {
   isEligibleForCoupons: boolean;
   isActive: boolean;
   sortOrder: number;
+  discountPercent: number;
+  discountDisabled: boolean;
   slots: ComboSlot[];
 };
 
@@ -47,6 +49,8 @@ type FormState = {
   description: string;
   price: string;
   sortOrder: string;
+  discountPercent: string;
+  discountDisabled: boolean;
   isActive: boolean;
   isEligibleForCoupons: boolean;
   slots: FormSlot[];
@@ -57,6 +61,8 @@ const EMPTY_FORM: FormState = {
   description: "",
   price: "",
   sortOrder: "0",
+  discountPercent: "0",
+  discountDisabled: false,
   isActive: true,
   isEligibleForCoupons: false,
   slots: [{ label: "", selectCount: 1, productIds: [] }],
@@ -146,6 +152,8 @@ export default function AdminCombosPage() {
       description: combo.description || "",
       price: String(combo.price),
       sortOrder: String(combo.sortOrder),
+      discountPercent: String(combo.discountPercent ?? 0),
+      discountDisabled: combo.discountDisabled ?? false,
       isActive: combo.isActive,
       isEligibleForCoupons: combo.isEligibleForCoupons,
       slots: combo.slots.length
@@ -238,6 +246,8 @@ export default function AdminCombosPage() {
       fd.append("description", form.description.trim());
       fd.append("price", form.price);
       fd.append("sortOrder", form.sortOrder || "0");
+      fd.append("discountPercent", form.discountPercent || "0");
+      fd.append("discountDisabled", String(form.discountDisabled));
       fd.append("isActive", String(form.isActive));
       fd.append("isEligibleForCoupons", String(form.isEligibleForCoupons));
       fd.append("slots", JSON.stringify(slotsPayload));
@@ -421,6 +431,17 @@ export default function AdminCombosPage() {
                 />
               </div>
             </div>
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <label className="block text-xs text-muted mb-1">Discount %</label>
+                <input
+                  value={form.discountPercent}
+                  onChange={(e) => setForm({ ...form, discountPercent: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                  inputMode="numeric"
+                />
+              </div>
+            </div>
             <div className="flex gap-6">
               <label className="flex items-center gap-2 text-sm">
                 <input
@@ -437,6 +458,14 @@ export default function AdminCombosPage() {
                   onChange={(e) => setForm({ ...form, isEligibleForCoupons: e.target.checked })}
                 />
                 Eligible for coupons
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={form.discountDisabled}
+                  onChange={(e) => setForm({ ...form, discountDisabled: e.target.checked })}
+                />
+                Disable discount for this item
               </label>
             </div>
             <div>

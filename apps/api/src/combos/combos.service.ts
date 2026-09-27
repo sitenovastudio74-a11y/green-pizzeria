@@ -1,4 +1,5 @@
-﻿import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { PricingService } from '../pricing/pricing.service';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateComboDto } from './dto/create-combo.dto';
 import { UpdateComboDto } from './dto/update-combo.dto';
@@ -12,7 +13,14 @@ type ParsedSlot = {
 
 @Injectable()
 export class CombosService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private pricing: PricingService) {}
+
+  private async withComboDiscount<T extends { price: any; discountPercent: number | null; discountDisabled: boolean }>(item: T) {
+    const effectiveDiscountPercent = await this.pricing.getEffectiveDiscountPercent(item.discountPercent, item.discountDisabled);
+    const originalPrice = Number(item.price);
+    const finalPrice = this.pricing.applyDiscount(originalPrice, effectiveDiscountPercent);
+    return { ...item, effectiveDiscountPercent, originalPrice, finalPrice };
+  }
 
   private parseSlots(slotsJson: string): ParsedSlot[] {
     let parsed: any;
@@ -50,11 +58,12 @@ export class CombosService {
   };
 
   async findAllPublic() {
-    return this.prisma.combo.findMany({
+    const combos = await this.prisma.combo.findMany({
       where: { isActive: true },
       orderBy: { sortOrder: 'asc' },
       include: this.comboInclude,
     });
+    return Promise.all(combos.map((c) => this.withComboDiscount(c)));
   }
 
   async findAllAdmin() {
@@ -72,7 +81,7 @@ export class CombosService {
     if (!combo) {
       throw new NotFoundException('Combo not found');
     }
-    return combo;
+    return this.withComboDiscount(combo);
   }
 
   async create(dto: CreateComboDto, imageUrl?: string) {
@@ -88,6 +97,8 @@ export class CombosService {
           isActive: dto.isActive ?? true,
           sortOrder: dto.sortOrder ?? 0,
           imageUrl,
+          discountPercent: dto.discountPercent ?? 0,
+          discountDisabled: dto.discountDisabled ?? false,
         },
       });
 
@@ -127,6 +138,8 @@ export class CombosService {
       }),
       ...(dto.isActive !== undefined && { isActive: dto.isActive }),
       ...(dto.sortOrder !== undefined && { sortOrder: dto.sortOrder }),
+      ...(dto.discountPercent !== undefined && { discountPercent: dto.discountPercent }),
+      ...(dto.discountDisabled !== undefined && { discountDisabled: dto.discountDisabled }),
       ...(imageUrl && { imageUrl }),
     };
 

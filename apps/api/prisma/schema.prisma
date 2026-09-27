@@ -160,6 +160,8 @@ model Product {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  discountPercent  Int?     @default(0)
+  discountDisabled Boolean  @default(false)
   optionGroups OptionGroup[]
   addons       ProductAddon[]
   addonGroups  AddonGroup[]
@@ -502,6 +504,8 @@ model Combo {
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
+  discountPercent  Int?     @default(0)
+  discountDisabled Boolean  @default(false)
   slots           ComboSlot[]
   cartComboItems  CartComboItem[]
   orderComboItems OrderComboItem[]

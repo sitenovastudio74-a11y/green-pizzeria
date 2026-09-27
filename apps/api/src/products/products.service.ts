@@ -1,11 +1,19 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { PricingService } from '../pricing/pricing.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 
 @Injectable()
 export class ProductsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private pricing: PricingService) {}
+
+  private async withDiscount<T extends { basePrice: any; discountPercent: number | null; discountDisabled: boolean }>(item: T) {
+    const effectiveDiscountPercent = await this.pricing.getEffectiveDiscountPercent(item.discountPercent, item.discountDisabled);
+    const originalPrice = Number(item.basePrice);
+    const finalPrice = this.pricing.applyDiscount(originalPrice, effectiveDiscountPercent);
+    return { ...item, effectiveDiscountPercent, originalPrice, finalPrice };
+  }
 
   async create(dto: CreateProductDto, imageUrl?: string) {
     return this.prisma.product.create({
@@ -17,13 +25,15 @@ export class ProductsService {
         isFeatured: dto.isFeatured ?? false,
         sortOrder: dto.sortOrder ?? 0,
         imageUrl,
+        discountPercent: dto.discountPercent ?? 0,
+        discountDisabled: dto.discountDisabled ?? false,
       },
     });
   }
 
   // Public: full menu detail, nested options/addons included
   async findAllPublic() {
-    return this.prisma.product.findMany({
+    const products = await this.prisma.product.findMany({
       where: { isAvailable: true },
       orderBy: { sortOrder: 'asc' },
       include: {
@@ -38,6 +48,7 @@ export class ProductsService {
         },
       },
     });
+    return Promise.all(products.map((p) => this.withDiscount(p)));
   }
 
   async findAllAdmin() {
@@ -69,7 +80,7 @@ export class ProductsService {
     if (!product) {
       throw new NotFoundException('Product not found');
     }
-    return product;
+    return this.withDiscount(product);
   }
 
   async update(id: string, dto: UpdateProductDto, imageUrl?: string) {

@@ -25,6 +25,7 @@ export default function AdminSettingsPage() {
 
   const [deliveryFee, setDeliveryFee] = useState("");
   const [taxRatePercent, setTaxRatePercent] = useState("");
+  const [globalDiscountPercent, setGlobalDiscountPercent] = useState("0");
   const [deliveryProvider, setDeliveryProvider] = useState("MANUAL");
   const [pickupAddress, setPickupAddress] = useState<PickupAddress>({
     street: "",
@@ -44,6 +45,7 @@ export default function AdminSettingsPage() {
         for (const setting of data) {
           if (setting.key === "delivery_fee") setDeliveryFee(setting.value);
           if (setting.key === "tax_rate_percent") setTaxRatePercent(setting.value);
+          if (setting.key === "global_discount_percent") setGlobalDiscountPercent(setting.value);
           if (setting.key === "delivery_provider") setDeliveryProvider(setting.value);
           if (setting.key === "pickup_address") {
             try {
@@ -86,11 +88,17 @@ export default function AdminSettingsPage() {
       setError("Enter a valid tax rate percentage.");
       return;
     }
+    const discountNum = Number(globalDiscountPercent);
+    if (globalDiscountPercent === "" || isNaN(discountNum) || discountNum < 0 || discountNum > 100) {
+      setError("Enter a valid global discount percentage (0-100).");
+      return;
+    }
 
     setSaving(true);
     try {
       await putSetting("delivery_fee", deliveryFee);
       await putSetting("tax_rate_percent", taxRatePercent);
+      await putSetting("global_discount_percent", globalDiscountPercent);
       await putSetting("delivery_provider", deliveryProvider);
       await putSetting("pickup_address", JSON.stringify(pickupAddress));
       setSaved(true);
@@ -124,6 +132,12 @@ export default function AdminSettingsPage() {
             <input value={taxRatePercent} onChange={(e) => setTaxRatePercent(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" inputMode="numeric" />
           </div>
         </div>
+      </div>
+
+      <div className="border rounded-lg p-4 mb-6">
+        <h2 className="text-sm font-medium mb-3">Discounts</h2>
+        <label className="block text-xs text-muted mb-1">Global discount % (applies to items without their own override)</label>
+        <input value={globalDiscountPercent} onChange={(e) => setGlobalDiscountPercent(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm" inputMode="numeric" />
       </div>
 
       <div className="border rounded-lg p-4 mb-6">
