@@ -72,7 +72,7 @@ function MenuItemRow({ product, index, onCustomize }: { product: Product; index:
 
       <div className="flex-1 min-w-0">
         <p className="font-display text-lg text-dark">{product.name}</p>
-        {product.effectiveDiscountPercent && product.effectiveDiscountPercent > 0 ? (
+        {(product.effectiveDiscountPercent ?? 0) > 0 ? (
           <div className="flex items-center gap-2 mt-0.5">
             <span className="text-muted line-through text-sm">&#8377;{product.originalPrice}</span>
             <span className="text-dark font-medium text-sm">&#8377;{product.finalPrice}</span>
@@ -80,7 +80,7 @@ function MenuItemRow({ product, index, onCustomize }: { product: Product; index:
         ) : (
           <p className="text-dark font-medium text-sm mt-0.5">&#8377;{product.basePrice}</p>
         )}
-        {product.effectiveDiscountPercent && product.effectiveDiscountPercent > 0 && (
+        {(product.effectiveDiscountPercent ?? 0) > 0 && (
           <p className="text-green-600 text-xs font-semibold mt-0.5">{product.effectiveDiscountPercent}% OFF</p>
         )}
         {product.description && (
