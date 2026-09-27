@@ -46,11 +46,18 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     fetch(API_URL + "/products/" + params.id)
-      .then((r) => r.json())
-      .then((data: Product) => {
+      .then((r) => {
+        if (!r.ok) return null;
+        return r.json();
+      })
+      .then((data: Product | null) => {
+        if (!data) {
+          setProduct(null);
+          return;
+        }
         setProduct(data);
         const defaults: Record<string, string> = {};
-        data.optionGroups.forEach((group) => {
+        (data.optionGroups ?? []).forEach((group) => {
           if (group.isRequired && group.options.length > 0) {
             defaults[group.id] = group.options[0].id;
           }
@@ -92,15 +99,15 @@ export default function ProductDetailPage() {
     toggleAddon(addonId);
   };
 
-  const ungroupedAddons = product.addons.filter((pa) => !pa.addonGroupId);
+  const ungroupedAddons = (product.addons ?? []).filter((pa) => !pa.addonGroupId);
 
-  const optionsTotal = product.optionGroups.reduce((sum, group) => {
+  const optionsTotal = (product.optionGroups ?? []).reduce((sum, group) => {
     const chosenId = selectedOptions[group.id];
     const chosen = group.options.find((o) => o.id === chosenId);
     return sum + (chosen ? Number(chosen.priceModifier) : 0);
   }, 0);
 
-  const addonsTotal = product.addons
+  const addonsTotal = (product.addons ?? [])
     .filter((pa) => selectedAddons.has(pa.addon.id))
     .reduce((sum, pa) => sum + Number(pa.addon.price), 0);
 
@@ -114,7 +121,7 @@ export default function ProductDetailPage() {
   const handleAddToCart = async () => {
     setError(null);
 
-    const missingRequired = product.optionGroups.find(
+    const missingRequired = (product.optionGroups ?? []).find(
       (g) => g.isRequired && !selectedOptions[g.id],
     );
     if (missingRequired) {
@@ -122,7 +129,7 @@ export default function ProductDetailPage() {
       return;
     }
 
-    for (const group of product.addonGroups) {
+    for (const group of (product.addonGroups ?? [])) {
       const groupAddonIds = new Set(group.productAddons.map((pa) => pa.addon.id));
       const selectedInGroup = Array.from(selectedAddons).filter((id) => groupAddonIds.has(id));
       if (selectedInGroup.length < group.minSelectable) {
@@ -217,7 +224,7 @@ export default function ProductDetailPage() {
           </motion.p>
         )}
 
-        {product.optionGroups.map((group, gi) => (
+        {(product.optionGroups ?? []).map((group, gi) => (
           <motion.div
             key={group.id}
             initial={{ opacity: 0, y: 8 }}
@@ -264,7 +271,7 @@ export default function ProductDetailPage() {
           </motion.div>
         ))}
 
-        {product.addonGroups.map((group, gi) => {
+        {(product.addonGroups ?? []).map((group, gi) => {
           const groupAddonIds = new Set(group.productAddons.map((pa) => pa.addon.id));
           const selectedInGroup = Array.from(selectedAddons).filter((id) => groupAddonIds.has(id));
           const atMax = selectedInGroup.length >= group.maxSelectable;
