@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { isLoggedIn } from "../login/page";
 import { apiFetch } from "../lib/api";
+import OrderRingAlert from "./components/OrderRingAlert";
 
 const ADMIN_LINKS = [
   { href: "/admin/dashboard", label: "Dashboard" },
@@ -57,6 +58,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="w-full min-w-0">
+      <OrderRingAlert />
       <div className="w-full min-w-0 overflow-x-auto border-b border-dark/10 bg-cream-soft">
         <nav className="flex gap-1 px-3 sm:px-4 py-2 w-max min-w-full sm:w-full">
           {ADMIN_LINKS.map((link) => {
