@@ -223,7 +223,7 @@ export default function AdminProductsPage() {
     setListError(null);
     try {
       const r = await apiFetch(`/products/${product.id}`, { method: "DELETE" });
-      if (!r.ok) throw new Error(await readError(r, "Could not delete product."));
+      if (!r.ok) throw new Error(await readError(r, "Could not delete product.")); const result = await r.json().catch(() => null); if (result && result.hidden) { window.alert(result.message); }
       await loadProducts();
     } catch (err: any) {
       setListError(err.message || "Could not delete product.");
