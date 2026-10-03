@@ -31,6 +31,8 @@ export class AuthService {
     return this.generateTokens(user.id, user.email, user.role);
   }
 
+  async mergeGuestCart(userId: string, guestToken?: string) { if (!guestToken) return; try { const guestCart = await this.prisma.cart.findUnique({ where: { guestToken } }); if (!guestCart || guestCart.userId) return; let userCart = await this.prisma.cart.findFirst({ where: { userId } }); if (!userCart) { userCart = await this.prisma.cart.create({ data: { userId } }); } await this.prisma.$transaction([ this.prisma.cartItem.updateMany({ where: { cartId: guestCart.id }, data: { cartId: userCart.id } }), this.prisma.cartComboItem.updateMany({ where: { cartId: guestCart.id }, data: { cartId: userCart.id } }), this.prisma.cart.delete({ where: { id: guestCart.id } }), ]); } catch (e) { /* never block login because of cart merge */ } }
+
   async login(identifier: string, password: string) {
     const isEmail = identifier.includes('@');
 

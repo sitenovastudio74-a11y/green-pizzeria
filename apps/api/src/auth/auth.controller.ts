@@ -33,7 +33,7 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('signup')
-  async signup(@Body() dto: SignupDto, @Res({ passthrough: true }) res: Response) {
+  async signup(@Body() dto: SignupDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const { accessToken, refreshToken, userId } = await this.authService.signup(
       dto.email,
       dto.password,
@@ -41,16 +41,20 @@ export class AuthController {
       dto.phone,
     );
     this.setTokenCookies(res, accessToken, refreshToken);
+    await this.authService.mergeGuestCart(userId, req.cookies?.guestToken);
+    res.clearCookie('guestToken', COOKIE_OPTIONS);
     return { userId };
   }
 
   @Post('login')
-  async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
+  async login(@Body() dto: LoginDto, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const { accessToken, refreshToken, userId } = await this.authService.login(
       dto.identifier,
       dto.password,
     );
     this.setTokenCookies(res, accessToken, refreshToken);
+    await this.authService.mergeGuestCart(userId, req.cookies?.guestToken);
+    res.clearCookie('guestToken', COOKIE_OPTIONS);
     return { userId };
   }
 

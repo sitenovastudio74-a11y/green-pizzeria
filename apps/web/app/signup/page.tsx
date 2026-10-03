@@ -42,7 +42,7 @@ export default function SignupPage() {
       }
 
       markLoggedIn();
-      router.push("/");
+      window.location.href = "/";
     } catch (err: any) {
       setError(err.message || "Something went wrong.");
     } finally {
