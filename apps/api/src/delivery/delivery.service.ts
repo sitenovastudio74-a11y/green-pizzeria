@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { OrdersService } from '../orders/orders.service';
 import { ManualDeliveryProvider } from './providers/manual-delivery.provider';
 import { UberDirectProvider } from './providers/uber-direct.provider';
+import { BorzoProvider } from './providers/borzo.provider';
 import { DeliveryStatus, OrderStatus } from '@prisma/client';
 
 const DELIVERY_TRANSITIONS: Record<DeliveryStatus, DeliveryStatus[]> = {
@@ -32,6 +33,7 @@ export class DeliveryService {
     private ordersService: OrdersService,
     private manualProvider: ManualDeliveryProvider,
     private uberProvider: UberDirectProvider,
+    private borzoProvider: BorzoProvider,
   ) {}
 
   async createForOrder(orderId: string) {
@@ -53,13 +55,18 @@ export class DeliveryService {
     });
     const providerName = providerSetting ? providerSetting.value : 'MANUAL';
 
-    const provider = providerName === 'UBER_DIRECT' ? this.uberProvider : this.manualProvider;
+    const provider =
+      providerName === 'UBER_DIRECT'
+        ? this.uberProvider
+        : providerName === 'BORZO'
+          ? this.borzoProvider
+          : this.manualProvider;
     const providerResult = await provider.createDelivery(orderId);
 
     const delivery = await this.prisma.delivery.create({
       data: {
         orderId,
-        provider: providerName === 'UBER_DIRECT' ? 'UBER_DIRECT' : 'MANUAL',
+        provider: providerName === 'UBER_DIRECT' ? 'UBER_DIRECT' : providerName === 'BORZO' ? 'BORZO' : 'MANUAL',
         status: DeliveryStatus.CREATED,
         providerDeliveryId: providerResult.providerDeliveryId,
         trackingUrl: providerResult.trackingUrl,
@@ -231,6 +238,34 @@ export class DeliveryService {
     for (const delivery of pending) {
       try {
         const { status, data } = await uberProvider.getDeliveryStatus(delivery.providerDeliveryId as string);
+        const before = (await this.findOne(delivery.id)).status;
+        await this.applyProviderUpdate(delivery.providerDeliveryId as string, status, data);
+        const after = (await this.findOne(delivery.id)).status;
+        if (after !== before) updated++;
+      } catch (err) {
+        errors++;
+      }
+    }
+
+    return { checked: pending.length, updated, errors };
+  }
+
+  // Polling for Borzo deliveries (same idea as pollProviderStatuses for Uber).
+  async pollBorzoStatuses(borzoProvider: BorzoProvider): Promise<{ checked: number; updated: number; errors: number }> {
+    const pending = await this.prisma.delivery.findMany({
+      where: {
+        provider: 'BORZO',
+        providerDeliveryId: { not: null },
+        status: { notIn: [DeliveryStatus.DELIVERED, DeliveryStatus.CANCELLED, DeliveryStatus.FAILED] },
+      },
+    });
+
+    let updated = 0;
+    let errors = 0;
+
+    for (const delivery of pending) {
+      try {
+        const { status, data } = await borzoProvider.getDeliveryStatus(delivery.providerDeliveryId as string);
         const before = (await this.findOne(delivery.id)).status;
         await this.applyProviderUpdate(delivery.providerDeliveryId as string, status, data);
         const after = (await this.findOne(delivery.id)).status;

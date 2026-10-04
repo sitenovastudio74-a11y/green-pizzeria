@@ -55,6 +55,7 @@ enum PaymentStatus {
 enum DeliveryProvider {
   UBER_DIRECT
   MANUAL
+  BORZO
 }
 
 enum DeliveryStatus {

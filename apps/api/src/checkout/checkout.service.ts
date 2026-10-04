@@ -4,12 +4,16 @@ import { CreateCheckoutDto } from './dto/create-checkout.dto';
 import { OrderType } from '@prisma/client';
 import * as crypto from 'crypto';
 import { UberDirectProvider } from '../delivery/providers/uber-direct.provider';
+import { BorzoProvider } from '../delivery/providers/borzo.provider';
+import { PricingService } from '../pricing/pricing.service';
 
 @Injectable()
 export class CheckoutService {
   constructor(
     private prisma: PrismaService,
     private uberDirectProvider: UberDirectProvider,
+    private borzoProvider: BorzoProvider,
+    private pricingService: PricingService,
   ) {}
 
   private async getSetting(key: string, fallback: number) {
@@ -29,15 +33,20 @@ export class CheckoutService {
       throw new NotFoundException('Address not found');
     }
 
-    const result = await this.uberDirectProvider.getQuote({
+    const providerSetting = await this.prisma.setting.findUnique({ where: { key: 'delivery_provider' } });
+    const useBorzo = !!providerSetting && providerSetting.value === 'BORZO';
+    const quoteProvider: any = useBorzo ? this.borzoProvider : this.uberDirectProvider;
+    const result = await quoteProvider.getQuote({
       fullAddress: address.fullAddress,
+      latitude: address.latitude,
+      longitude: address.longitude,
       city: address.city,
       state: address.state,
       pincode: address.pincode,
     });
 
     if (!result.deliverable) {
-      return { deliverable: false, message: 'Sorry, we only deliver within 16 km of our store.' };
+      return { deliverable: false, message: useBorzo ? 'Sorry, we only deliver within ' + (process.env.BORZO_MAX_KM || '24') + ' km of our store.' : 'Sorry, we only deliver within 16 km of our store.' };
     }
 
     return {
@@ -108,7 +117,11 @@ export class CheckoutService {
         );
       }
 
-      let unitPrice = Number(item.product.basePrice);
+      const itemDiscountPercent = await this.pricingService.getEffectiveDiscountPercent(
+        item.product.discountPercent,
+        item.product.discountDisabled,
+      );
+      let unitPrice = this.pricingService.applyDiscount(Number(item.product.basePrice), itemDiscountPercent);
       const optionSnapshots = item.selectedOptions.map((so) => {
         unitPrice += Number(so.option.priceModifier);
         return {
@@ -152,7 +165,11 @@ export class CheckoutService {
         );
       }
 
-      const unitPrice = Number(comboItem.combo.price);
+      const comboDiscountPercent = await this.pricingService.getEffectiveDiscountPercent(
+        comboItem.combo.discountPercent,
+        comboItem.combo.discountDisabled,
+      );
+      const unitPrice = this.pricingService.applyDiscount(Number(comboItem.combo.price), comboDiscountPercent);
       const lineTotal = unitPrice * comboItem.quantity;
       subtotal += lineTotal;
 
@@ -183,10 +200,20 @@ export class CheckoutService {
     }
 
     // Delivery fee only applies to delivery orders. Takeaway and dine-in skip it.
-    const deliveryFee =
-      dto.orderType === OrderType.DELIVERY
-        ? await this.getSetting('delivery_fee', 40)
-        : 0;
+    let deliveryFee = 0;
+    if (dto.orderType === OrderType.DELIVERY) {
+      const providerSetting = await this.prisma.setting.findUnique({ where: { key: 'delivery_provider' } });
+      if (providerSetting && providerSetting.value === 'BORZO') {
+        // Price delivery on the server from a fresh Borzo quote. Never trust the amount the browser shows.
+        const quote: any = await this.getDeliveryQuote(userId, dto.addressId as string);
+        if (!quote.deliverable) {
+          throw new BadRequestException(quote.message || 'Delivery is not available to this address');
+        }
+        deliveryFee = Number(quote.fee);
+      } else {
+        deliveryFee = await this.getSetting('delivery_fee', 40);
+      }
+    }
     const taxRatePercent = await this.getSetting('tax_rate_percent', 5);
     const tax = Math.round((subtotal * taxRatePercent) / 100);
     const total = subtotal + deliveryFee + tax;

@@ -145,6 +145,7 @@ export default function AdminSettingsPage() {
         <select value={deliveryProvider} onChange={(e) => setDeliveryProvider(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm">
           <option value="MANUAL">Manual</option>
           <option value="UBER_DIRECT">Uber Direct</option>
+          <option value="BORZO">Borzo</option>
         </select>
       </div>
 

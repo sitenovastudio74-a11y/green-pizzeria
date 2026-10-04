@@ -1,7 +1,8 @@
-﻿import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { DeliveryService } from './delivery.service';
 import { UberDirectProvider } from './providers/uber-direct.provider';
+import { BorzoProvider } from './providers/borzo.provider';
 
 // Safety-net polling for Uber Direct deliveries. In production, Uber's
 // webhooks (uber-webhook.controller.ts) are the primary way delivery status
@@ -17,6 +18,7 @@ export class DeliveryPollingService {
   constructor(
     private deliveryService: DeliveryService,
     private uberProvider: UberDirectProvider,
+    private borzoProvider: BorzoProvider,
   ) {}
 
   @Cron('0 */2 * * * *') // every 2 minutes
@@ -28,6 +30,10 @@ export class DeliveryPollingService {
     this.running = true;
     try {
       const result = await this.deliveryService.pollProviderStatuses(this.uberProvider);
+      const borzo = await this.deliveryService.pollBorzoStatuses(this.borzoProvider);
+      if (borzo.checked > 0) {
+        this.logger.log('Polled ' + borzo.checked + ' Borzo deliveries: ' + borzo.updated + ' updated, ' + borzo.errors + ' errors');
+      }
       if (result.checked > 0) {
         this.logger.log(
           `Polled ${result.checked} Uber Direct deliveries: ${result.updated} updated, ${result.errors} errors`,

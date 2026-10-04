@@ -17,6 +17,7 @@ async function bootstrap() {
   // All other routes get normal JSON parsing.
   app.use('/payments/webhook', express.raw({ type: '*/*' }));
   app.use('/delivery/webhook/uber', express.raw({ type: '*/*' }));
+  app.use('/delivery/webhook/borzo', express.raw({ type: '*/*' }));
   app.use(express.json());
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true }));
