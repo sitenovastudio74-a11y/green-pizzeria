@@ -142,6 +142,22 @@ export default function CheckoutPage() {
     e.preventDefault();
     setSavingAddress(true);
     setError(null);
+    const fullTrim = newFullAddress.trim();
+    if (fullTrim.length < 15 || !/\d/.test(fullTrim)) {
+      setError("Please enter your house or flat number, building and street so the rider can find you.");
+      setSavingAddress(false);
+      return;
+    }
+    if (!newLandmark.trim()) {
+      setError("Please add a landmark near your address.");
+      setSavingAddress(false);
+      return;
+    }
+    if (!/^\d{6}$/.test(newPincode.trim())) {
+      setError("Pincode must be 6 digits.");
+      setSavingAddress(false);
+      return;
+    }
 
     try {
       const res = await apiFetch("/addresses", {

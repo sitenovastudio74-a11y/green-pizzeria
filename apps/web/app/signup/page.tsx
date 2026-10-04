@@ -83,7 +83,7 @@ export default function SignupPage() {
           <div>
             <label className="block text-sm font-medium mb-1">Phone</label>
             <input
-              type="tel"
+              type="tel" required pattern="[0-9+ ]{10,15}" title="Enter a valid 10-digit phone number"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               className="w-full border rounded-lg px-3 py-2"

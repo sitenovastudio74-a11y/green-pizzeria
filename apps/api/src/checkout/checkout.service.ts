@@ -94,6 +94,15 @@ export class CheckoutService {
       if (!dto.addressId) {
         throw new BadRequestException('addressId is required for delivery orders');
       }
+      const phoneProvider = await this.prisma.setting.findUnique({ where: { key: 'delivery_provider' } });
+      if (phoneProvider && phoneProvider.value === 'BORZO') {
+        const phoneUser = await this.prisma.user.findUnique({ where: { id: userId }, select: { phone: true } });
+        const phoneDigits = String((phoneUser && phoneUser.phone) || '').replace(/\D/g, '');
+        const phoneOk = phoneDigits.length === 10 || (phoneDigits.length === 11 && phoneDigits.startsWith('0')) || (phoneDigits.length === 12 && phoneDigits.startsWith('91'));
+        if (!phoneOk) {
+          throw new BadRequestException('Please add a valid 10-digit phone number in your account (Account > Edit profile) before ordering delivery.');
+        }
+      }
       address = await this.prisma.address.findFirst({
         where: { id: dto.addressId, userId },
       });
