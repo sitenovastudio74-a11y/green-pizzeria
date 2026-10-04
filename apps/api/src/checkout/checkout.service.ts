@@ -34,7 +34,24 @@ export class CheckoutService {
     }
 
     const providerSetting = await this.prisma.setting.findUnique({ where: { key: 'delivery_provider' } });
-    const useBorzo = !!providerSetting && providerSetting.value === 'BORZO';
+    const providerValue = providerSetting ? providerSetting.value : 'MANUAL';
+
+    // MANUAL deliveries are priced with the flat delivery_fee setting, not a
+    // live courier quote - this must match the logic in checkout() exactly,
+    // otherwise the price previewed here can disagree with what checkout()
+    // actually charges.
+    if (providerValue !== 'BORZO' && providerValue !== 'UBER_DIRECT') {
+      const flatFee = await this.getSetting('delivery_fee', 40);
+      return {
+        deliverable: true,
+        fee: flatFee,
+        currency: 'INR',
+        quoteId: 'manual',
+        expiresAt: new Date(Date.now() + 15 * 60000).toISOString(),
+      };
+    }
+
+    const useBorzo = providerValue === 'BORZO';
     const quoteProvider: any = useBorzo ? this.borzoProvider : this.uberDirectProvider;
     const result = await quoteProvider.getQuote({
       fullAddress: address.fullAddress,
