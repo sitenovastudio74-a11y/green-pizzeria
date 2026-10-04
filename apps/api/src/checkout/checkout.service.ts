@@ -212,8 +212,11 @@ export class CheckoutService {
     let deliveryFee = 0;
     if (dto.orderType === OrderType.DELIVERY) {
       const providerSetting = await this.prisma.setting.findUnique({ where: { key: 'delivery_provider' } });
-      if (providerSetting && providerSetting.value === 'BORZO') {
-        // Price delivery on the server from a fresh Borzo quote. Never trust the amount the browser shows.
+      const providerValue = providerSetting ? providerSetting.value : 'MANUAL';
+      if (providerValue === 'BORZO' || providerValue === 'UBER_DIRECT') {
+        // Price delivery on the server from a fresh live quote (Borzo or Uber Direct,
+        // whichever is active) - this must match what getDeliveryQuote() showed the
+        // frontend. Never trust the amount the browser shows.
         const quote: any = await this.getDeliveryQuote(userId, dto.addressId as string);
         if (!quote.deliverable) {
           throw new BadRequestException(quote.message || 'Delivery is not available to this address');
