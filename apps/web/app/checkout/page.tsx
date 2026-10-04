@@ -375,14 +375,14 @@ export default function CheckoutPage() {
                 type="text"
                 required
                 minLength={5}
-                placeholder="Full address"
+                placeholder="House / flat no., building, street, area"
                 value={newFullAddress}
                 onChange={(e) => setNewFullAddress(e.target.value)}
                 className="w-full border rounded-lg px-3 py-2 text-sm"
               />
               <input
                 type="text"
-                placeholder="Landmark (optional)"
+                placeholder="Landmark (required), e.g. near Metro Gate 2"
                 value={newLandmark}
                 onChange={(e) => setNewLandmark(e.target.value)}
                 className="w-full border rounded-lg px-3 py-2 text-sm"
