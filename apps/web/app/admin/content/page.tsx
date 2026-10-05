@@ -35,12 +35,14 @@ const HOME_SLOTS = [
   { slot: "why_us_3", label: "Why Us ? Card 3" },
   { slot: "order_cta", label: "Order CTA" },
   { slot: "craving", label: "Home: What are you craving? (heading)" },
+  { slot: "most_loved", label: "Home: Most loved (heading)" },
   { slot: "footer_brand", label: "Footer: Brand name" },
   { slot: "footer_tagline", label: "Footer: Tagline" },
 ];
 
 const SLOT_DEFAULTS: Record<string, { heading: string; font: string }> = {
   craving: { heading: "What are you craving?", font: "Fraunces" },
+  most_loved: { heading: "Most loved", font: "Fraunces" },
   footer_brand: { heading: "Green Pizzeria", font: "Playfair Display" },
   footer_tagline: { heading: "100% vegetarian Napoletana pizza, made fresh for you.", font: "Spirax" },
 };

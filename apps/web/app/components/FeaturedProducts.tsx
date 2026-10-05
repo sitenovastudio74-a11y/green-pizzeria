@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'motion/react';
 import { getImageUrl } from '../lib/imageUrl';
+import { useSectionText, fontStyle } from '../lib/useSectionText';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -18,6 +19,7 @@ type Product = {
 
 export default function FeaturedProducts() {
   const [products, setProducts] = useState<Product[]>([]);
+  const heading = useSectionText('most_loved', 'Most loved', 'Fraunces');
 
   useEffect(() => {
     fetch(API_URL + "/products")
@@ -32,8 +34,8 @@ export default function FeaturedProducts() {
 
   return (
     <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-      <h2 className="font-display text-2xl sm:text-3xl text-dark mb-6">
-        Most loved
+      <h2 className="font-display text-2xl sm:text-3xl text-dark mb-6" style={fontStyle(heading.font)}>
+        {heading.text}
       </h2>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 sm:gap-8">
