@@ -590,3 +590,35 @@ model OrderComboSelection {
   @@map("order_combo_selections")
 }
 
+
+
+model HomeSection {
+  id         String   @id @default(uuid())
+  slot       String   @unique
+  tagline    String?
+  heading    String?
+  body       String?
+  imageUrl   String?
+  buttonText String?
+  buttonLink String?
+  font       String?
+  sortOrder  Int      @default(0)
+  updatedAt  DateTime @updatedAt
+
+  @@map("home_sections")
+}
+
+model StoryBlock {
+  id        String   @id @default(uuid())
+  type      String
+  content   String?
+  imageUrl  String?
+  linkText  String?
+  linkUrl   String?
+  font      String?
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("story_blocks")
+}

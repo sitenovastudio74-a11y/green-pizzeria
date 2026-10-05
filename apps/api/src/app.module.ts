@@ -1,4 +1,4 @@
-﻿import { Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -22,9 +22,10 @@ import { ProfileModule } from './profile/profile.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { CombosModule } from './combos/combos.module';
 import { OrderCleanupModule } from './order-cleanup/order-cleanup.module';
+import { ContentModule } from './content/content.module';
 
 @Module({
-  imports: [ScheduleModule.forRoot(), PrismaModule, AuthModule, UsersModule, CategoriesModule, ProductsModule, OptionGroupsModule, AddonsModule, OrdersModule, CartModule, CheckoutModule, ReviewsModule, ComplaintsModule, SettingsModule, DeliveryModule, PaymentsModule, AddressesModule, AddonGroupsModule, ProfileModule, CombosModule, OrderCleanupModule],
+  imports: [ScheduleModule.forRoot(), PrismaModule, AuthModule, UsersModule, CategoriesModule, ProductsModule, OptionGroupsModule, AddonsModule, OrdersModule, CartModule, CheckoutModule, ReviewsModule, ComplaintsModule, SettingsModule, DeliveryModule, PaymentsModule, AddressesModule, AddonGroupsModule, ProfileModule, CombosModule, OrderCleanupModule, ContentModule],
   controllers: [AppController],
   providers: [AppService],
 })

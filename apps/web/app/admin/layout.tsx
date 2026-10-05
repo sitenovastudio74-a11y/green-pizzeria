@@ -18,6 +18,7 @@ const ADMIN_LINKS = [
   { href: "/admin/delivery", label: "Delivery" },
   { href: "/admin/complaints", label: "Complaints" },
   { href: "/admin/reviews", label: "Reviews" },
+  { href: "/admin/content", label: "Content" },
   { href: "/admin/settings", label: "Settings" },
 ];
 
