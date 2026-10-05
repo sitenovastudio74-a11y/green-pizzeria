@@ -37,8 +37,9 @@ export default function Navbar() {
       className="sticky top-0 z-50 bg-cream/95 backdrop-blur border-b border-dark/10"
     >
       <div className="max-w-6xl mx-auto flex items-center justify-between px-4 sm:px-6 py-4">
-        <Link href="/" className="font-brand font-black not-italic text-xl sm:text-2xl text-primary shrink-0">
-          Green Pizzeria
+        <Link href="/" className="flex items-center gap-2 font-brand font-black not-italic text-xl sm:text-2xl text-primary shrink-0">
+          <img src="/logo.png" alt="" className="h-8 w-8 sm:h-9 sm:w-9 object-contain" />
+          <span>Green Pizzeria</span>
         </Link>
 
         <nav className="hidden lg:flex items-center gap-8 text-sm text-dark">
