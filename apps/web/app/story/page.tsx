@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useState } from 'react';
 import { loadGoogleFont } from '../lib/loadGoogleFont';
+import { useSectionText, fontStyle } from '../lib/useSectionText';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -119,6 +120,7 @@ function FallbackBody() {
 export default function StoryPage() {
   const [blocks, setBlocks] = useState<StoryBlock[]>([]);
   const [status, setStatus] = useState<'loading' | 'ok' | 'fallback'>('loading');
+  const title = useSectionText('story_title', 'Our story', 'Inter');
 
   useEffect(() => {
     fetch(API_URL + '/content/story')
@@ -143,7 +145,7 @@ export default function StoryPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-semibold mb-6">Our story</h1>
+      <h1 className="text-3xl font-semibold mb-6" style={fontStyle(title.font)}>{title.text}</h1>
       {status === 'ok' && blocks.map((b) => renderBlock(b))}
       {status === 'fallback' && <FallbackBody />}
     </div>

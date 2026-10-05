@@ -36,6 +36,7 @@ const HOME_SLOTS = [
   { slot: "order_cta", label: "Order CTA" },
   { slot: "craving", label: "Home: What are you craving? (heading)" },
   { slot: "most_loved", label: "Home: Most loved (heading)" },
+  { slot: "story_title", label: "Our Story page: Title" },
   { slot: "footer_brand", label: "Footer: Brand name" },
   { slot: "footer_tagline", label: "Footer: Tagline" },
 ];
@@ -43,10 +44,22 @@ const HOME_SLOTS = [
 const SLOT_DEFAULTS: Record<string, { heading: string; font: string }> = {
   craving: { heading: "What are you craving?", font: "Fraunces" },
   most_loved: { heading: "Most loved", font: "Fraunces" },
+  story_title: { heading: "Our story", font: "Inter" },
   footer_brand: { heading: "Green Pizzeria", font: "Playfair Display" },
   footer_tagline: { heading: "100% vegetarian Napoletana pizza, made fresh for you.", font: "Spirax" },
 };
 const TEXT_ONLY_SLOTS = Object.keys(SLOT_DEFAULTS);
+
+const STORY_DEFAULTS: { type: "TEXT" | "HEADING" | "LIST"; content: string; linkText?: string; linkUrl?: string }[] = [
+  { type: "TEXT", content: "Green Pizzeria was born out of a simple idea: pizza in India deserves to be made the way it is in Naples - hand-stretched, wood-fired, and built on honest ingredients, with nothing to hide behind heavy toppings or shortcuts." },
+  { type: "TEXT", content: "Every pizza we make starts with a slow-proofed Napoletana dough, topped with fresh vegetables, quality cheese, and sauces made in-house. We are proud to be a 100% vegetarian kitchen - it is not a limitation, it is a craft, and we have spent real time getting the balance of flavour and texture right without ever reaching for meat as a shortcut." },
+  { type: "TEXT", content: "We are based in Ashok Vihar, Delhi, and we bake, box and deliver every order ourselves - no matter if you are dining in, picking up, or having it delivered to your door. From our combos to our build-your-own options, everything on the menu is designed to be shared, customised, and enjoyed fresh out of the oven." },
+  { type: "TEXT", content: "Whether it is a quiet weeknight dinner or a celebration with friends, our goal is the same every time: a genuinely good, honest slice of Italy, made fresh for you." },
+  { type: "HEADING", content: "What makes us different" },
+  { type: "LIST", content: "100% vegetarian kitchen, every single item on the menu\nHand-stretched, wood-fired Napoletana-style dough\nFresh, in-house sauces and no artificial shortcuts\nDine-in, takeaway, and delivery - all made and packed with the same care\nCombos and customisable options built for sharing" },
+  { type: "HEADING", content: "Get in touch" },
+  { type: "TEXT", content: "Have a question, feedback, or a special request? We would love to hear from you - visit our {{LINK}} for our phone, email, and address.", linkText: "Contact Us page", linkUrl: "/contact" },
+];
 async function readError(r: Response, fallback: string): Promise<string> {
   const data = await r.json().catch(() => null);
   if (Array.isArray(data?.message)) return data.message.join(", ");
@@ -143,6 +156,29 @@ export default function AdminContentPage() {
     }
   };
 
+  const importCurrentStory = async () => {
+    setError(null);
+    setSavingSlot("import");
+    try {
+      for (let i = 0; i < STORY_DEFAULTS.length; i++) {
+        const item = STORY_DEFAULTS[i];
+        const fd = new FormData();
+        fd.append("type", item.type);
+        fd.append("content", item.content);
+        fd.append("font", "Inter");
+        fd.append("sortOrder", String(i));
+        if (item.linkText) fd.append("linkText", item.linkText);
+        if (item.linkUrl) fd.append("linkUrl", item.linkUrl);
+        const r = await apiFetch("/content/story", { method: "POST", body: fd });
+        if (!r.ok) throw new Error(await readError(r, "Could not load current text."));
+      }
+    } catch (err: any) {
+      setError(err.message || "Could not load current text.");
+    } finally {
+      setSavingSlot(null);
+      load();
+    }
+  };
   const updateBlockLocal = (id: string, patch: Partial<StoryBlock>) => {
     setBlocks((prev) => prev.map((b) => (b.id === id ? { ...b, ...patch } : b)));
   };
@@ -329,6 +365,15 @@ export default function AdminContentPage() {
             <button onClick={() => addBlock("HEADING")} className="bg-dark/5 rounded-lg px-3 py-1.5 text-sm">+ Heading</button>
             <button onClick={() => addBlock("IMAGE")} className="bg-dark/5 rounded-lg px-3 py-1.5 text-sm">+ Image</button>
               <button onClick={() => addBlock("LIST")} className="bg-dark/5 rounded-lg px-3 py-1.5 text-sm">+ List</button>
+            {blocks.length === 0 && (
+              <button
+                onClick={importCurrentStory}
+                disabled={savingSlot === "import"}
+                className="bg-green-600 text-white rounded-lg px-3 py-1.5 text-sm font-medium ml-auto"
+              >
+                {savingSlot === "import" ? "Loading..." : "Load current text"}
+              </button>
+            )}
           </div>
 
           {blocks.map((block, i) => (
