@@ -91,11 +91,23 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    await this.prisma.session.deleteMany({ where: { id: session.id } });
+    // No rotation: same refresh token stays valid, so parallel refresh
+    // calls cannot invalidate each other. Expiry slides forward 30 days.
+    await this.prisma.session.updateMany({
+      where: { id: session.id },
+      data: { expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) },
+    });
 
-    return this.generateTokens(user.id, user.email, user.role);
+    const accessToken = this.jwtService.sign(
+      { sub: user.id, email: user.email ?? '', role: user.role },
+      {
+        secret: process.env.JWT_ACCESS_SECRET,
+        expiresIn: (process.env.JWT_ACCESS_EXPIRY ?? '15m') as any,
+      },
+    );
+
+    return { accessToken, refreshToken, userId: user.id };
   }
-
   async logout(refreshToken: string) {
     await this.prisma.session.deleteMany({
       where: { refreshToken },
