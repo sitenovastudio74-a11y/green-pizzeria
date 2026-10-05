@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'motion/react';
 import { getImageUrl } from '../lib/imageUrl';
+import { useSectionText, fontStyle } from '../lib/useSectionText';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -15,6 +16,7 @@ type Category = {
 
 export default function CategoryRail() {
   const [categories, setCategories] = useState<Category[]>([]);
+  const heading = useSectionText('craving', 'What are you craving?', 'Fraunces');
 
   useEffect(() => {
     fetch(API_URL + "/categories")
@@ -29,8 +31,11 @@ export default function CategoryRail() {
 
   return (
     <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-      <h2 className="font-display text-2xl sm:text-3xl text-dark mb-6">
-        What are you craving?
+      <h2
+        className="font-display text-2xl sm:text-3xl text-dark mb-6"
+        style={fontStyle(heading.font)}
+      >
+        {heading.text}
       </h2>
 
       <div className="flex gap-5 overflow-x-auto pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">

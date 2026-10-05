@@ -34,8 +34,17 @@ const HOME_SLOTS = [
   { slot: "why_us_2", label: "Why Us ? Card 2" },
   { slot: "why_us_3", label: "Why Us ? Card 3" },
   { slot: "order_cta", label: "Order CTA" },
+  { slot: "craving", label: "Home: What are you craving? (heading)" },
+  { slot: "footer_brand", label: "Footer: Brand name" },
+  { slot: "footer_tagline", label: "Footer: Tagline" },
 ];
 
+const SLOT_DEFAULTS: Record<string, { heading: string; font: string }> = {
+  craving: { heading: "What are you craving?", font: "Fraunces" },
+  footer_brand: { heading: "Green Pizzeria", font: "Playfair Display" },
+  footer_tagline: { heading: "100% vegetarian Napoletana pizza, made fresh for you.", font: "Spirax" },
+};
+const TEXT_ONLY_SLOTS = Object.keys(SLOT_DEFAULTS);
 async function readError(r: Response, fallback: string): Promise<string> {
   const data = await r.json().catch(() => null);
   if (Array.isArray(data?.message)) return data.message.join(", ");
@@ -64,6 +73,11 @@ export default function AdminContentPage() {
         const map: Record<string, HomeSection> = {};
         for (const s of Array.isArray(homeData) ? homeData : []) {
           map[s.slot] = s;
+        }
+        for (const [dslot, d] of Object.entries(SLOT_DEFAULTS)) {
+          if (!map[dslot]) {
+            map[dslot] = { id: "", slot: dslot, tagline: null, heading: d.heading, body: "", imageUrl: null, buttonText: null, buttonLink: null, font: d.font, sortOrder: 0 };
+          }
         }
         setSections(map);
         setBlocks(Array.isArray(storyData) ? storyData : []);
@@ -95,7 +109,7 @@ export default function AdminContentPage() {
       fd.append("body", section?.body ?? "");
       fd.append("buttonText", section?.buttonText ?? "");
       fd.append("buttonLink", section?.buttonLink ?? "");
-      fd.append("font", section?.font ?? "Inter");
+      fd.append("font", section?.font ?? SLOT_DEFAULTS[slot]?.font ?? "Inter");
       fd.append("sortOrder", String(section?.sortOrder ?? 0));
       const file = imageFiles[slot];
       if (file) fd.append("image", file);
@@ -230,15 +244,16 @@ export default function AdminContentPage() {
                   </>
                 )}
 
-                <label className="block text-xs text-muted mb-1">Heading</label>
+                <label className="block text-xs text-muted mb-1">{TEXT_ONLY_SLOTS.includes(slot) ? "Text" : "Heading"}</label>
                 <input
                   value={section?.heading ?? ""}
                   onChange={(e) => updateSection(slot, { heading: e.target.value })}
                   className="w-full border rounded-lg px-3 py-2 text-sm mb-3"
                 />
 
-                <label className="block text-xs text-muted mb-1">Body</label>
+                <label style={TEXT_ONLY_SLOTS.includes(slot) ? { display: "none" } : undefined} className="block text-xs text-muted mb-1">Body</label>
                 <textarea
+                  style={TEXT_ONLY_SLOTS.includes(slot) ? { display: "none" } : undefined}
                   value={section?.body ?? ""}
                   onChange={(e) => updateSection(slot, { body: e.target.value })}
                   rows={2}
@@ -286,7 +301,7 @@ export default function AdminContentPage() {
                 <label className="block text-xs text-muted mb-1">Font</label>
                 <div className="mb-3">
                   <FontPicker
-                    value={section?.font ?? "Inter"}
+                    value={section?.font ?? SLOT_DEFAULTS[slot]?.font ?? "Inter"}
                     onChange={(f) => updateSection(slot, { font: f })}
                   />
                 </div>

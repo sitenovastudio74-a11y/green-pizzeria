@@ -1,13 +1,30 @@
+'use client';
+
 import Link from 'next/link';
+import { useSectionText, fontStyle } from '../lib/useSectionText';
 
 export default function Footer() {
+  const brand = useSectionText('footer_brand', 'Green Pizzeria', 'Playfair Display');
+  const tagline = useSectionText(
+    'footer_tagline',
+    '100% vegetarian Napoletana pizza, made fresh for you.',
+    'Spirax',
+  );
+
   return (
     <footer className="bg-dark text-cream-soft mt-24">
       <div className="max-w-6xl mx-auto px-6 py-14 grid grid-cols-2 md:grid-cols-4 gap-10">
         <div className="col-span-2 md:col-span-1">
-          <p className="font-brand font-black not-italic text-2xl mb-3">Green Pizzeria</p>
+          <p
+            className="font-brand font-black not-italic text-2xl mb-3"
+            style={fontStyle(brand.font)}
+          >
+            {brand.text}
+          </p>
           <p className="text-sm text-cream-soft/70">
-            <span className="font-tagline text-lg">100% vegetarian Napoletana pizza, made fresh for you.</span>
+            <span className="font-tagline text-lg" style={fontStyle(tagline.font)}>
+              {tagline.text}
+            </span>
           </p>
         </div>
 
