@@ -622,3 +622,20 @@ model StoryBlock {
 
   @@map("story_blocks")
 }
+
+model Testimonial {
+  id        String   @id @default(uuid())
+  name      String
+  comment   String
+  rating    Int      @default(5)
+  source    String?
+  reviewId  String?  @unique
+  photoUrl  String?
+  linkUrl   String?
+  isVisible Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("testimonials")
+}

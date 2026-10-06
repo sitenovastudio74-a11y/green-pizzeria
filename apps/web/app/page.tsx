@@ -3,6 +3,7 @@ import CategoryRail from './components/CategoryRail';
 import WhyUs from './components/WhyUs';
 import FeaturedProducts from './components/FeaturedProducts';
 import OrderCta from './components/OrderCta';
+import Reviews from './components/Reviews';
 
 export default function Home() {
   return (
@@ -12,6 +13,7 @@ export default function Home() {
       <WhyUs />
       <FeaturedProducts />
       <OrderCta />
+      <Reviews />
     </main>
   );
 }
