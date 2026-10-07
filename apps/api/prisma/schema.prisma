@@ -149,6 +149,7 @@ model Category {
 
 model Product {
   id          String   @id @default(uuid())
+  isDeleted   Boolean  @default(false)
   categoryId  String
   category    Category @relation(fields: [categoryId], references: [id])
   name        String
@@ -260,7 +261,7 @@ model CartItem {
   cartId              String
   cart                Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
   productId           String
-  product             Product  @relation(fields: [productId], references: [id])
+  product             Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   quantity            Int      @default(1)
   specialInstructions String?
   priceSnapshot       Decimal  @db.Decimal(10, 2)
@@ -277,7 +278,7 @@ model CartItemOption {
   cartItemId String
   cartItem   CartItem @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
   optionId   String
-  option     Option   @relation(fields: [optionId], references: [id])
+  option     Option   @relation(fields: [optionId], references: [id], onDelete: Cascade)
 
   @@map("cart_item_options")
 }
@@ -287,7 +288,7 @@ model CartItemAddon {
   cartItemId String
   cartItem   CartItem @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
   addonId    String
-  addon      Addon    @relation(fields: [addonId], references: [id])
+  addon      Addon    @relation(fields: [addonId], references: [id], onDelete: Cascade)
 
   quantity   Int      @default(1)
 
@@ -350,7 +351,7 @@ model OrderItemOption {
   orderItemId String
   orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
   optionId    String
-  option      Option    @relation(fields: [optionId], references: [id])
+  option      Option?   @relation(fields: [optionId], references: [id], onDelete: SetNull)
 
   optionName    String
   priceModifier Decimal @db.Decimal(10, 2)
@@ -363,7 +364,7 @@ model OrderItemAddon {
   orderItemId String
   orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
   addonId     String
-  addon       Addon     @relation(fields: [addonId], references: [id])
+  addon       Addon?    @relation(fields: [addonId], references: [id], onDelete: SetNull)
 
   addonName String
   price     Decimal @db.Decimal(10, 2)
@@ -495,6 +496,7 @@ enum OrderType {
 
 model Combo {
   id                   String   @id @default(uuid())
+  isDeleted            Boolean  @default(false)
   name                 String
   description          String?
   imageUrl             String?
@@ -543,7 +545,7 @@ model CartComboItem {
   cartId        String
   cart          Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
   comboId       String
-  combo         Combo    @relation(fields: [comboId], references: [id])
+  combo         Combo    @relation(fields: [comboId], references: [id], onDelete: Cascade)
   quantity      Int      @default(1)
   priceSnapshot Decimal  @db.Decimal(10, 2)
   createdAt     DateTime @default(now())
@@ -567,8 +569,8 @@ model OrderComboItem {
   id        String  @id @default(uuid())
   orderId   String
   order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  comboId   String
-  combo     Combo   @relation(fields: [comboId], references: [id])
+  comboId   String?
+  combo     Combo?  @relation(fields: [comboId], references: [id], onDelete: SetNull)
   comboName String
   quantity  Int
   unitPrice Decimal @db.Decimal(10, 2)
