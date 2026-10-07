@@ -2,6 +2,15 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.1.58"],
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination:
+          (process.env.API_PROXY_TARGET || "https://green-pizzeria-production.up.railway.app") + "/:path*",
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
