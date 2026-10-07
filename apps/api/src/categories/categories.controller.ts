@@ -25,6 +25,18 @@ const imageUploadOptions = {
   storage: memoryStorage(),
 };
 
+// FormData sends everything as text. Empty or "null" means "no parent".
+function parseParent(v?: string): string | null | undefined {
+  if (v === undefined) return undefined;
+  const s = String(v).trim();
+  return s === '' || s === 'null' ? null : s;
+}
+
+function parseBool(v?: string): boolean | undefined {
+  if (v === undefined) return undefined;
+  return String(v) === 'true';
+}
+
 @Controller('categories')
 export class CategoriesController {
   constructor(private categoriesService: CategoriesService) {}
@@ -54,10 +66,15 @@ export class CategoriesController {
   @UseInterceptors(FileInterceptor('image', imageUploadOptions))
   async create(
     @Body() dto: CreateCategoryDto,
+    @Body('parentId') parentId?: string,
+    @Body('isActive') isActive?: string,
     @UploadedFile() file?: Express.Multer.File,
   ) {
     const imageUrl = file ? await uploadImageToCloudinary(file.buffer, 'categories') : undefined;
-    return this.categoriesService.create(dto, imageUrl);
+    return this.categoriesService.create(dto, imageUrl, {
+      parentId: parseParent(parentId),
+      isActive: parseBool(isActive),
+    });
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -67,10 +84,15 @@ export class CategoriesController {
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateCategoryDto,
+    @Body('parentId') parentId?: string,
+    @Body('isActive') isActive?: string,
     @UploadedFile() file?: Express.Multer.File,
   ) {
     const imageUrl = file ? await uploadImageToCloudinary(file.buffer, 'categories') : undefined;
-    return this.categoriesService.update(id, dto, imageUrl);
+    return this.categoriesService.update(id, dto, imageUrl, {
+      parentId: parseParent(parentId),
+      isActive: parseBool(isActive),
+    });
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

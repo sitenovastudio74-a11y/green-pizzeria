@@ -21,7 +21,7 @@ export default function CategoryRail() {
   useEffect(() => {
     fetch(API_URL + "/categories")
       .then((res) => res.json())
-      .then((data) => setCategories(Array.isArray(data) ? data : []))
+      .then((data) => setCategories(Array.isArray(data) ? data.filter((c: any) => !c.parentId) : []))
       .catch(() => setCategories([]));
   }, []);
 

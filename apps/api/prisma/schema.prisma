@@ -141,6 +141,9 @@ model Category {
   sortOrder   Int      @default(0)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
+  parentId    String?
+  parent      Category?  @relation("CategoryChildren", fields: [parentId], references: [id], onDelete: SetNull)
+  children    Category[] @relation("CategoryChildren")
 
   products Product[]
 

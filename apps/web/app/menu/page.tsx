@@ -13,7 +13,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 type OptionGroup = { id: string; isRequired: boolean };
 type AddonGroup = { id: string };
 type ProductAddon = { addon: { id: string } };
-type Category = { id: string; name: string; imageUrl: string | null };
+type Category = { id: string; name: string; imageUrl: string | null; parentId?: string | null };
 type Product = {
   id: string;
   categoryId: string;
@@ -141,7 +141,8 @@ function MenuContent() {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [activeCategory, setActiveCategory] = useState<string | null>(preselected);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [openSections, setOpenSections] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeProductId, setActiveProductId] = useState<string | null>(null);
 
@@ -151,18 +152,34 @@ function MenuContent() {
       fetch(API_URL + "/products").then((r) => r.json()),
     ])
       .then(([cats, prods]) => {
-        setCategories(cats);
-        setProducts(prods);
-        if (!preselected && cats.length > 0) {
-          setActiveCategory(cats[0].id);
+        const catList: Category[] = Array.isArray(cats) ? cats : [];
+        setCategories(catList);
+        setProducts(Array.isArray(prods) ? prods : []);
+        const tops = catList.filter((c) => !c.parentId);
+        const pre = preselected ? catList.find((c) => c.id === preselected) : undefined;
+        if (pre && pre.parentId) {
+          setActiveCategory(pre.parentId);
+          setOpenSections([pre.id]);
+        } else if (pre) {
+          setActiveCategory(pre.id);
+        } else if (tops.length > 0) {
+          setActiveCategory(tops[0].id);
         }
       })
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, [preselected]);
 
-  const visibleProducts = activeCategory
+  const topLevel = categories.filter((c) => !c.parentId);
+  const subSections = categories
+    .filter((c) => c.parentId === activeCategory)
+    .filter((c) => products.some((p) => p.categoryId === c.id));
+  const directProducts = activeCategory
     ? products.filter((p) => p.categoryId === activeCategory)
     : products;
+
+  const toggleSection = (id: string) =>
+    setOpenSections((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
 
   if (loading) {
     return (
@@ -177,10 +194,10 @@ function MenuContent() {
       <h1 className="font-display text-3xl sm:text-4xl text-dark mb-8">Our menu</h1>
 
       <div className="flex gap-3 overflow-x-auto pb-3 mb-8 -mx-4 px-4 sm:mx-0 sm:px-0">
-        {categories.map((cat) => (
+        {topLevel.map((cat) => (
           <button
             key={cat.id}
-            onClick={() => setActiveCategory(cat.id)}
+            onClick={() => { setActiveCategory(cat.id); setOpenSections([]); }}
             className={
               "shrink-0 rounded-full px-5 py-2 text-sm transition-colors border " +
               (activeCategory === cat.id
@@ -194,14 +211,48 @@ function MenuContent() {
       </div>
 
       <div className="flex flex-col divide-y divide-dark/10">
-        {visibleProducts.map((product, i) => (
+        {directProducts.map((product, i) => (
           <MenuItemRow key={product.id} product={product} index={i} onCustomize={setActiveProductId} />
         ))}
 
-        {visibleProducts.length === 0 && (
+        {directProducts.length === 0 && subSections.length === 0 && (
           <p className="text-muted py-10 text-center">No items in this category yet.</p>
         )}
       </div>
+
+      {subSections.length > 0 && (
+        <div className="mt-2 flex flex-col gap-3">
+          {subSections.map((sub) => {
+            const isOpen = openSections.includes(sub.id);
+            const subProducts = products.filter((p) => p.categoryId === sub.id);
+            return (
+              <div key={sub.id} className="border border-dark/10 rounded-2xl overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => toggleSection(sub.id)}
+                  aria-expanded={isOpen}
+                  className="w-full flex items-center justify-between px-5 py-4 text-left bg-cream-soft hover:bg-dark/5 transition-colors"
+                >
+                  <span className="font-display text-lg text-dark">
+                    {sub.name}
+                    <span className="ml-2 text-sm text-muted">({subProducts.length})</span>
+                  </span>
+                  <span className={"text-dark transition-transform duration-200 " + (isOpen ? "rotate-180" : "")}>
+                    &#9662;
+                  </span>
+                </button>
+                {isOpen && (
+                  <div className="px-5 flex flex-col divide-y divide-dark/10">
+                    {subProducts.map((product, i) => (
+                      <MenuItemRow key={product.id} product={product} index={i} onCustomize={setActiveProductId} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {activeProductId && (
         <ProductCustomizeSheet
