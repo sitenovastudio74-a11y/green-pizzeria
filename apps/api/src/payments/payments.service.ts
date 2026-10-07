@@ -79,6 +79,14 @@ export class PaymentsService {
       throw new NotFoundException('No payment record found for this order');
     }
 
+    if (order.status === OrderStatus.PAYMENT_SUCCESS) {
+      // Already confirmed by the Razorpay webhook, which can arrive before this
+      // call finishes. Treat it as success instead of calling updateStatus again,
+      // which would throw and show a false error to the customer after a
+      // payment that actually succeeded.
+      return { success: true, message: 'Payment already verified' };
+    }
+
     const isValid = this.razorpayProvider.verifyPaymentSignature({
       providerOrderId: razorpayOrderId,
       providerPaymentId: razorpayPaymentId,
