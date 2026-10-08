@@ -353,7 +353,7 @@ model OrderItemOption {
   id          String    @id @default(uuid())
   orderItemId String
   orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
-  optionId    String
+  optionId    String?
   option      Option?   @relation(fields: [optionId], references: [id], onDelete: SetNull)
 
   optionName    String
@@ -366,7 +366,7 @@ model OrderItemAddon {
   id          String    @id @default(uuid())
   orderItemId String
   orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
-  addonId     String
+  addonId     String?
   addon       Addon?    @relation(fields: [addonId], references: [id], onDelete: SetNull)
 
   addonName String
