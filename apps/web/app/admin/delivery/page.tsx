@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { apiFetch } from "../../lib/api";
+import CompletedDeliveries from "../components/CompletedDeliveries";
 
 type Delivery = {
   id: string;
@@ -57,6 +58,7 @@ export default function AdminDeliveryPage() {
   const [rowError, setRowError] = useState<Record<string, string>>({});
   const [forms, setForms] = useState<Record<string, { name: string; phone: string }>>({});
   const [updatedAt, setUpdatedAt] = useState<Date | null>(null);
+  const [tab, setTab] = useState<"active" | "rider" | "completed">("active");
 
   const load = async () => {
     const r = await apiFetch("/orders");
@@ -235,8 +237,26 @@ export default function AdminDeliveryPage() {
         </div>
       </div>
       {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
+      <div className="flex gap-2 mb-4 flex-wrap">
+      {([
+        { key: "active", label: "Active (" + orders.length + ")" },
+        { key: "rider", label: "Need a rider (" + orders.filter((o) => o.status === "DELIVERY_BOOKING").length + ")" },
+        { key: "completed", label: "Completed" },
+      ] as const).map((t) => (
+        <button
+          key={t.key}
+          onClick={() => setTab(t.key)}
+          className={"rounded-lg px-4 py-2 text-sm font-medium border " + (tab === t.key ? "bg-green-600 text-white border-green-600" : "border-dark/15 text-dark hover:bg-dark/5")}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
+      {tab !== "completed" && (
+      <>
       {orders.length === 0 && <p className="text-sm text-muted">No delivery orders need attention right now.</p>}
-      {SECTIONS.map((section) => {
+      {tab === "rider" && orders.length > 0 && orders.filter((o) => o.status === "DELIVERY_BOOKING").length === 0 && <p className="text-sm text-muted">No orders are waiting for a rider right now.</p>}
+      {SECTIONS.filter((section) => tab === "active" || section.key === "booking").map((section) => {
         const sectionOrders = orders.filter((o) => section.statuses.includes(o.status));
         if (sectionOrders.length === 0) return null;
         return (
@@ -246,6 +266,11 @@ export default function AdminDeliveryPage() {
           </div>
         );
       })}
+      </>
+      )}
+      <div className={tab === "completed" ? "" : "hidden"}>
+        <CompletedDeliveries />
+      </div>
     </div>
   );
 }
