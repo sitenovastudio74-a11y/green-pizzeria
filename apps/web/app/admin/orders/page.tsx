@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { apiFetch } from "../../lib/api";
+import ReceiptPrint from "../components/ReceiptPrint";
 
 const ALL_STATUSES = [
   "PENDING", "PAYMENT_PENDING", "PAYMENT_SUCCESS", "CONFIRMED", "PREPARING",
@@ -223,6 +224,7 @@ export default function AdminOrdersPage() {
                   >
                     Cancel order
                   </button>
+                  <ReceiptPrint orderId={order.id} />
                 </div>
                 {rowError[order.id] && (
                   <p className="text-sm text-red-600 mt-2">{rowError[order.id]}</p>
