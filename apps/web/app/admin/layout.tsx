@@ -13,6 +13,7 @@ const ADMIN_LINKS = [
   { href: "/admin/categories", label: "Categories" },
   { href: "/admin/combos", label: "Combos" },
   { href: "/admin/options", label: "Options & Addons" },
+  { href: "/admin/addon-groups", label: "Addon Groups" },
   { href: "/admin/orders", label: "Orders" },
   { href: "/admin/kitchen", label: "Kitchen" },
   { href: "/admin/delivery", label: "Delivery" },
