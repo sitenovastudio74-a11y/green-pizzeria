@@ -14,4 +14,18 @@ export class PublicSettingsController {
       taxRatePercent: Number(taxRatePercent),
     };
   }
+
+  @Get('store-status')
+  async getStoreStatus() {
+    const raw = await this.settingsService.getValueOrDefault('store_status', '{"isOpen":true,"message":""}');
+    try {
+      const parsed = JSON.parse(raw);
+      return {
+        isOpen: parsed.isOpen !== false,
+        message: typeof parsed.message === 'string' ? parsed.message : '',
+      };
+    } catch {
+      return { isOpen: true, message: '' };
+    }
+  }
 }

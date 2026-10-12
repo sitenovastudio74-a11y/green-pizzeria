@@ -1,4 +1,5 @@
 import Hero from './components/Hero';
+import StoreStatusBanner from './components/StoreStatusBanner';
 import CategoryRail from './components/CategoryRail';
 import WhyUs from './components/WhyUs';
 import FeaturedProducts from './components/FeaturedProducts';
@@ -8,6 +9,7 @@ import Reviews from './components/Reviews';
 export default function Home() {
   return (
     <main className="flex-1">
+      <StoreStatusBanner />
       <Hero />
       <CategoryRail />
       <WhyUs />

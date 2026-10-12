@@ -76,6 +76,18 @@ export class CheckoutService {
   }
 
   async checkout(userId: string, dto: CreateCheckoutDto) {
+    // Store open/closed switch (set by admin). Missing or unreadable setting means open.
+    const storeSetting = await this.prisma.setting.findUnique({ where: { key: 'store_status' } });
+    if (storeSetting) {
+      try {
+        const storeState = JSON.parse(storeSetting.value);
+        if (storeState && storeState.isOpen === false) {
+          throw new BadRequestException(storeState.message || 'We are closed right now. Please try again later.');
+        }
+      } catch (e) {
+        if (e instanceof BadRequestException) throw e;
+      }
+    }
     // Client requirement: only online payment is accepted.
     if (String(dto.paymentMethod) !== 'ONLINE') {
       throw new BadRequestException('Only online payment is accepted');

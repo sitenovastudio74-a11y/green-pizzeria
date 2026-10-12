@@ -27,6 +27,10 @@ export default function AdminSettingsPage() {
   const [taxRatePercent, setTaxRatePercent] = useState("");
   const [globalDiscountPercent, setGlobalDiscountPercent] = useState("0");
   const [deliveryProvider, setDeliveryProvider] = useState("MANUAL");
+  const [storeOpen, setStoreOpen] = useState(true);
+  const [storeMessage, setStoreMessage] = useState("");
+  const [storeSaving, setStoreSaving] = useState(false);
+  const [storeSaved, setStoreSaved] = useState(false);
   const [pickupAddress, setPickupAddress] = useState<PickupAddress>({
     street: "",
     city: "",
@@ -47,6 +51,13 @@ export default function AdminSettingsPage() {
           if (setting.key === "tax_rate_percent") setTaxRatePercent(setting.value);
           if (setting.key === "global_discount_percent") setGlobalDiscountPercent(setting.value);
           if (setting.key === "delivery_provider") setDeliveryProvider(setting.value);
+          if (setting.key === "store_status") {
+            try {
+              const s = JSON.parse(setting.value);
+              setStoreOpen(s.isOpen !== false);
+              setStoreMessage(typeof s.message === "string" ? s.message : "");
+            } catch {}
+          }
           if (setting.key === "pickup_address") {
             try {
               const parsed = JSON.parse(setting.value);
@@ -72,6 +83,21 @@ export default function AdminSettingsPage() {
       body: JSON.stringify({ value }),
     });
     if (!r.ok) throw new Error(await readError(r, "Could not save " + key + "."));
+  };
+
+  const saveStore = async (open: boolean) => {
+    setError(null);
+    setStoreSaved(false);
+    setStoreSaving(true);
+    try {
+      await putSetting("store_status", JSON.stringify({ isOpen: open, message: storeMessage.trim() }));
+      setStoreOpen(open);
+      setStoreSaved(true);
+    } catch (err: any) {
+      setError(err.message || "Could not save store status.");
+    } finally {
+      setStoreSaving(false);
+    }
   };
 
   const handleSave = async () => {
@@ -173,6 +199,20 @@ export default function AdminSettingsPage() {
             <input value={pickupAddress.phone} onChange={(e) => setPickupAddress({ ...pickupAddress, phone: e.target.value })} className="w-full border rounded-lg px-3 py-2 text-sm" />
           </div>
         </div>
+      </div>
+
+      <div className="border rounded-lg p-4 mb-6">
+        <h2 className="text-sm font-medium mb-1">Store status</h2>
+        <p className="text-xs text-muted mb-3">
+          Right now: <span className={storeOpen ? "text-green-600 font-medium" : "text-red-600 font-medium"}>{storeOpen ? "Open" : "Closed"}</span>. When closed, customers cannot place orders and see the message below at the top of the home page.
+        </p>
+        <label className="block text-xs text-muted mb-1">Message for customers</label>
+        <textarea value={storeMessage} onChange={(e) => setStoreMessage(e.target.value)} rows={2} className="w-full border rounded-lg px-3 py-2 text-sm mb-3" placeholder="We're closed right now. We'll be back tomorrow at 12:30 PM!" />
+        <div className="flex gap-3">
+          <button onClick={() => saveStore(true)} disabled={storeSaving} className="flex-1 bg-green-600 text-white rounded-lg py-2 text-sm font-medium disabled:opacity-50">Open store</button>
+          <button onClick={() => saveStore(false)} disabled={storeSaving} className="flex-1 bg-red-600 text-white rounded-lg py-2 text-sm font-medium disabled:opacity-50">Close store</button>
+        </div>
+        {storeSaved && <p className="text-sm text-green-600 mt-3">Store status saved.</p>}
       </div>
 
       <button onClick={handleSave} disabled={saving} className="w-full bg-green-600 text-white rounded-lg py-2.5 text-sm font-medium">
