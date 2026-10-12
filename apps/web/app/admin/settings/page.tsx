@@ -29,6 +29,7 @@ export default function AdminSettingsPage() {
   const [deliveryProvider, setDeliveryProvider] = useState("MANUAL");
   const [storeOpen, setStoreOpen] = useState(true);
   const [storeMessage, setStoreMessage] = useState("");
+  const [storeReopenAt, setStoreReopenAt] = useState("");
   const [storeSaving, setStoreSaving] = useState(false);
   const [storeSaved, setStoreSaved] = useState(false);
   const [pickupAddress, setPickupAddress] = useState<PickupAddress>({
@@ -54,8 +55,11 @@ export default function AdminSettingsPage() {
           if (setting.key === "store_status") {
             try {
               const s = JSON.parse(setting.value);
-              setStoreOpen(s.isOpen !== false);
+              setStoreOpen(s.isOpen !== false || (typeof s.reopenAt === "string" && Date.parse(s.reopenAt) <= Date.now()));
               setStoreMessage(typeof s.message === "string" ? s.message : "");
+              if (typeof s.reopenAt === "string" && Date.parse(s.reopenAt) > Date.now()) {
+                setStoreReopenAt(new Date(Date.parse(s.reopenAt) + 330 * 60000).toISOString().slice(0, 16));
+              }
             } catch {}
           }
           if (setting.key === "pickup_address") {
@@ -90,7 +94,11 @@ export default function AdminSettingsPage() {
     setStoreSaved(false);
     setStoreSaving(true);
     try {
-      await putSetting("store_status", JSON.stringify({ isOpen: open, message: storeMessage.trim() }));
+      const reopenIso = !open && storeReopenAt ? storeReopenAt + ":00+05:30" : undefined;
+      if (reopenIso && Date.parse(reopenIso) <= Date.now()) {
+        throw new Error("Reopen time must be in the future (IST).");
+      }
+      await putSetting("store_status", JSON.stringify({ isOpen: open, message: storeMessage.trim(), reopenAt: reopenIso }));
       setStoreOpen(open);
       setStoreSaved(true);
     } catch (err: any) {
@@ -208,6 +216,9 @@ export default function AdminSettingsPage() {
         </p>
         <label className="block text-xs text-muted mb-1">Message for customers</label>
         <textarea value={storeMessage} onChange={(e) => setStoreMessage(e.target.value)} rows={2} className="w-full border rounded-lg px-3 py-2 text-sm mb-3" placeholder="We're closed right now. We'll be back tomorrow at 12:30 PM!" />
+        <label className="block text-xs text-muted mb-1">Reopen automatically at (IST, optional)</label>
+        <input type="datetime-local" value={storeReopenAt} onChange={(e) => setStoreReopenAt(e.target.value)} className="w-full border rounded-lg px-3 py-2 text-sm mb-1" />
+        <p className="text-xs text-muted mb-3">Used when you press Close store. At this time the store opens by itself.</p>
         <div className="flex gap-3">
           <button onClick={() => saveStore(true)} disabled={storeSaving} className="flex-1 bg-green-600 text-white rounded-lg py-2 text-sm font-medium disabled:opacity-50">Open store</button>
           <button onClick={() => saveStore(false)} disabled={storeSaving} className="flex-1 bg-red-600 text-white rounded-lg py-2 text-sm font-medium disabled:opacity-50">Close store</button>

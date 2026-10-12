@@ -81,7 +81,7 @@ export class CheckoutService {
     if (storeSetting) {
       try {
         const storeState = JSON.parse(storeSetting.value);
-        if (storeState && storeState.isOpen === false) {
+        if (storeState && storeState.isOpen === false && !(typeof storeState.reopenAt === 'string' && Date.parse(storeState.reopenAt) <= Date.now())) {
           throw new BadRequestException(storeState.message || 'We are closed right now. Please try again later.');
         }
       } catch (e) {

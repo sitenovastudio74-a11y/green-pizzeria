@@ -21,8 +21,9 @@ export class PublicSettingsController {
     try {
       const parsed = JSON.parse(raw);
       return {
-        isOpen: parsed.isOpen !== false,
+        isOpen: parsed.isOpen !== false || (typeof parsed.reopenAt === 'string' && Date.parse(parsed.reopenAt) <= Date.now()),
         message: typeof parsed.message === 'string' ? parsed.message : '',
+        reopenAt: typeof parsed.reopenAt === 'string' ? parsed.reopenAt : null,
       };
     } catch {
       return { isOpen: true, message: '' };
