@@ -87,7 +87,34 @@ export default function ReceiptPrint({ orderId }: { orderId: string }) {
       setOrder(orderData);
       setPickup(pickupData);
       setMode(m);
-      setTimeout(() => window.print(), 100);
+      setTimeout(() => {
+        // Make the paper exactly as tall as the receipt, so no blank space is printed after it.
+        const el = document.querySelector(".receipt-print-root") as HTMLElement | null;
+        if (el) {
+          const oldStyle = el.getAttribute("style");
+          el.style.display = "block";
+          el.style.position = "absolute";
+          el.style.left = "-9999px";
+          el.style.top = "0";
+          el.style.visibility = "hidden";
+          const heightPx = el.getBoundingClientRect().height;
+          if (oldStyle === null) el.removeAttribute("style");
+          else el.setAttribute("style", oldStyle);
+          const heightMm = Math.ceil((heightPx * 25.4) / 96) + 2;
+          let tag = document.getElementById("receipt-page-size");
+          if (!tag) {
+            tag = document.createElement("style");
+            tag.id = "receipt-page-size";
+            document.head.appendChild(tag);
+          }
+          tag.textContent = "@page { size: 80mm " + heightMm + "mm; margin: 0; }";
+          window.addEventListener("afterprint", () => {
+            const t = document.getElementById("receipt-page-size");
+            if (t) t.remove();
+          }, { once: true });
+        }
+        window.print();
+      }, 100);
     } catch (err: any) {
       setError(err.message || "Could not load the receipt.");
     } finally {
@@ -118,23 +145,17 @@ export default function ReceiptPrint({ orderId }: { orderId: string }) {
       {order && typeof document !== "undefined" && createPortal(
         <div className="receipt-print-root">
           <style>{`
-            .receipt-print-root { display: none; }
+            .receipt-print-root { display: none; width: 280px; box-sizing: border-box; font-family: "Courier New", monospace; font-size: 12px; color: #000; background: #fff; padding: 4px 8px; }
+            .receipt-print-root .center { text-align: center; }
+            .receipt-print-root .line { border-top: 1px dashed #000; margin: 6px 0; }
+            .receipt-print-root .row { display: flex; justify-content: space-between; gap: 8px; }
+            .receipt-print-root .kot-item { font-size: 15px; margin-top: 6px; }
+            .receipt-print-root .kot-sub { padding-left: 12px; font-size: 13px; }
             @media print {
-              @page { size: 80mm auto; margin: 0; }
+              @page { margin: 0; }
+              html, body { margin: 0 !important; padding: 0 !important; height: auto !important; min-height: 0 !important; background: #fff !important; }
               body > *:not(.receipt-print-root) { display: none !important; }
-              .receipt-print-root {
-                display: block !important;
-                width: 280px;
-                font-family: "Courier New", monospace;
-                font-size: 12px;
-                color: #000;
-                padding: 8px;
-              }
-              .receipt-print-root .center { text-align: center; }
-              .receipt-print-root .line { border-top: 1px dashed #000; margin: 6px 0; }
-              .receipt-print-root .row { display: flex; justify-content: space-between; gap: 8px; }
-              .receipt-print-root .kot-item { font-size: 15px; margin-top: 6px; }
-              .receipt-print-root .kot-sub { padding-left: 12px; font-size: 13px; }
+              .receipt-print-root { display: block !important; }
             }
           `}</style>
 
