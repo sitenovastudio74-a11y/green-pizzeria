@@ -1,4 +1,4 @@
-﻿import { Injectable, BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCouponDto, UpdateCouponDto } from './dto/coupon.dto';
 
@@ -9,7 +9,7 @@ export class CouponsService {
   private norm(code: string) {
     const c = String(code || '').trim().toUpperCase();
     if (!/^[A-Z0-9_-]{3,30}$/.test(c)) {
-      throw new BadRequestException('Code me sirf letters, numbers, - aur _ chalenge (3 se 30 characters)');
+      throw new BadRequestException('Coupon code may contain only letters, numbers, hyphens and underscores (3 to 30 characters)');
     }
     return c;
   }
@@ -21,7 +21,7 @@ export class CouponsService {
   async create(dto: CreateCouponDto) {
     const code = this.norm(dto.code);
     const exists = await this.prisma.coupon.findUnique({ where: { code } });
-    if (exists) throw new ConflictException('Ye coupon code pehle se hai');
+    if (exists) throw new ConflictException('This coupon code already exists');
     return this.prisma.coupon.create({
       data: {
         code,
@@ -43,7 +43,7 @@ export class CouponsService {
       const code = this.norm(dto.code);
       if (code !== cur.code) {
         const clash = await this.prisma.coupon.findUnique({ where: { code } });
-        if (clash) throw new ConflictException('Ye coupon code pehle se hai');
+        if (clash) throw new ConflictException('This coupon code already exists');
       }
       data.code = code;
     }
@@ -69,13 +69,13 @@ export class CouponsService {
     const c = await this.prisma.coupon.findUnique({ where: { code } });
     if (!c || !c.isActive) throw new BadRequestException('Invalid coupon code');
     if (c.expiresAt && c.expiresAt.getTime() < Date.now()) {
-      throw new BadRequestException('Ye coupon expire ho chuka hai');
+      throw new BadRequestException('This coupon has expired');
     }
     if (c.usageLimit !== null && c.usedCount >= c.usageLimit) {
-      throw new BadRequestException('Ye coupon ki limit khatam ho chuki hai');
+      throw new BadRequestException('This coupon has reached its usage limit');
     }
     if (c.minOrder !== null && subtotal < Number(c.minOrder)) {
-      throw new BadRequestException('Is coupon ke liye minimum order Rs ' + Number(c.minOrder) + ' hai');
+      throw new BadRequestException('A minimum order value of \u20B9' + Number(c.minOrder) + ' is required to use this coupon');
     }
     let discount = Math.round((subtotal * c.percentOff) / 100);
     if (c.maxDiscount !== null) discount = Math.min(discount, Number(c.maxDiscount));
@@ -93,6 +93,6 @@ export class CouponsService {
     const where: any = { id: couponId };
     if (usageLimit !== null && usageLimit !== undefined) where.usedCount = { lt: usageLimit };
     const r = await tx.coupon.updateMany({ where, data: { usedCount: { increment: 1 } } });
-    if (r.count === 0) throw new BadRequestException('Ye coupon ki limit khatam ho chuki hai');
+    if (r.count === 0) throw new BadRequestException('This coupon has reached its usage limit');
   }
 }
