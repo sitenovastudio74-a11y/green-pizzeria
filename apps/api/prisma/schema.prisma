@@ -327,6 +327,7 @@ model Order {
   complaints Complaint[]
   comboItems OrderComboItem[]
 
+  couponCode String?
   @@map("orders")
 }
 
@@ -643,4 +644,20 @@ model Testimonial {
   updatedAt DateTime @updatedAt
 
   @@map("testimonials")
+}
+
+model Coupon {
+  id          String    @id @default(uuid())
+  code        String    @unique
+  percentOff  Int
+  maxDiscount Decimal?  @db.Decimal(10, 2)
+  minOrder    Decimal?  @db.Decimal(10, 2)
+  expiresAt   DateTime?
+  usageLimit  Int?
+  usedCount   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("coupons")
 }

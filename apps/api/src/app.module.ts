@@ -25,9 +25,10 @@ import { OrderCleanupModule } from './order-cleanup/order-cleanup.module';
 import { ContentModule } from './content/content.module';
 import { TestimonialsModule } from './testimonials/testimonials.module';
 import { AddonGroupAdminModule } from './addon-group-admin/addon-group-admin.module';
+import { CouponsModule } from './coupons/coupons.module';
 
 @Module({
-  imports: [ScheduleModule.forRoot(), PrismaModule, AuthModule, UsersModule, CategoriesModule, ProductsModule, OptionGroupsModule, AddonsModule, OrdersModule, CartModule, CheckoutModule, ReviewsModule, ComplaintsModule, SettingsModule, DeliveryModule, PaymentsModule, AddressesModule, AddonGroupsModule, ProfileModule, CombosModule, OrderCleanupModule, ContentModule, TestimonialsModule, AddonGroupAdminModule],
+  imports: [ScheduleModule.forRoot(), PrismaModule, AuthModule, UsersModule, CategoriesModule, ProductsModule, OptionGroupsModule, AddonsModule, OrdersModule, CartModule, CheckoutModule, ReviewsModule, ComplaintsModule, SettingsModule, DeliveryModule, PaymentsModule, AddressesModule, AddonGroupsModule, ProfileModule, CombosModule, OrderCleanupModule, ContentModule, TestimonialsModule, AddonGroupAdminModule, CouponsModule],
   controllers: [AppController],
   providers: [AppService],
 })

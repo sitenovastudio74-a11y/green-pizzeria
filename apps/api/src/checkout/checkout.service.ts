@@ -6,6 +6,7 @@ import * as crypto from 'crypto';
 import { UberDirectProvider } from '../delivery/providers/uber-direct.provider';
 import { BorzoProvider } from '../delivery/providers/borzo.provider';
 import { PricingService } from '../pricing/pricing.service';
+import { CouponsService } from '../coupons/coupons.service';
 
 @Injectable()
 export class CheckoutService {
@@ -14,6 +15,7 @@ export class CheckoutService {
     private uberDirectProvider: UberDirectProvider,
     private borzoProvider: BorzoProvider,
     private pricingService: PricingService,
+    private couponsService: CouponsService,
   ) {}
 
   private async getSetting(key: string, fallback: number) {
@@ -256,12 +258,22 @@ export class CheckoutService {
       }
     }
     const taxRatePercent = await this.getSetting('tax_rate_percent', 5);
-    const tax = Math.round((subtotal * taxRatePercent) / 100);
-    const total = subtotal + deliveryFee + tax;
+    let discount = 0;
+    let appliedCoupon: any = null;
+    if (dto.couponCode && dto.couponCode.trim()) {
+      const applied = await this.couponsService.check(dto.couponCode, subtotal);
+      discount = applied.discount;
+      appliedCoupon = applied.coupon;
+    }
+    const tax = Math.round(((subtotal - discount) * taxRatePercent) / 100);
+    const total = subtotal - discount + deliveryFee + tax;
 
     const orderNumber = 'GP' + Math.floor(1000 + Math.random() * 9000);
 
     const order = await this.prisma.$transaction(async (tx) => {
+      if (appliedCoupon) {
+        await this.couponsService.redeemTx(tx, appliedCoupon.id, appliedCoupon.usageLimit);
+      }
       const newOrder = await tx.order.create({
         data: {
           orderNumber,
@@ -272,7 +284,8 @@ export class CheckoutService {
           subtotal,
           deliveryFee,
           tax,
-          discount: 0,
+          discount,
+          couponCode: appliedCoupon ? appliedCoupon.code : null,
           total,
           status: 'PAYMENT_PENDING',
           specialInstructions: dto.specialInstructions,
