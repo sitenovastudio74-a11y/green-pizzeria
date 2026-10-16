@@ -14,7 +14,7 @@ const VALID_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   PICKED_UP: [OrderStatus.OUT_FOR_DELIVERY],
   OUT_FOR_DELIVERY: [OrderStatus.DELIVERED, OrderStatus.DELIVERY_FAILED],
   DELIVERED: [],
-  PAYMENT_FAILED: [],
+  PAYMENT_FAILED: [OrderStatus.PAYMENT_SUCCESS],
   CANCELLED: [],
   DELIVERY_FAILED: [OrderStatus.RIDER_ASSIGNED, OrderStatus.CANCELLED],
   REFUNDED: [],
