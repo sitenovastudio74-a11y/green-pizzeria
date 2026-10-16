@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { apiFetch } from "../../lib/api";
@@ -61,7 +61,7 @@ export default function AdminCouponsPage() {
     setMsg(null);
     const b = body();
     if (!b.code || !b.percentOff || b.percentOff < 1 || b.percentOff > 100) {
-      setMsg("Code aur percent (1 se 100) zaruri hain.");
+      setMsg("A coupon code and a discount percentage between 1 and 100 are required.");
       return;
     }
     setBusy(true);
@@ -73,12 +73,12 @@ export default function AdminCouponsPage() {
     setBusy(false);
     if (!res.ok) {
       const d = await res.json().catch(() => null);
-      setMsg(Array.isArray(d?.message) ? d.message.join(", ") : d?.message || "Save nahi hua.");
+      setMsg(Array.isArray(d?.message) ? d.message.join(", ") : d?.message || "Unable to save the coupon. Please try again.");
       return;
     }
     setForm(EMPTY);
     setEditId(null);
-    setMsg(editId ? "Coupon update ho gaya." : "Coupon ban gaya.");
+    setMsg(editId ? "Coupon updated successfully." : "Coupon created successfully.");
     load();
   }
 
@@ -106,7 +106,7 @@ export default function AdminCouponsPage() {
   }
 
   async function remove(c: Coupon) {
-    if (!window.confirm("Coupon " + c.code + " delete karna hai? Purane orders par asar nahi padega.")) return;
+    if (!window.confirm("Delete coupon " + c.code + "? Existing orders will not be affected.")) return;
     await apiFetch("/coupons/" + c.id, { method: "DELETE" });
     load();
   }
@@ -117,11 +117,11 @@ export default function AdminCouponsPage() {
     <div className="max-w-4xl mx-auto p-4">
       <h1 className="text-xl font-semibold mb-1">Coupons</h1>
       <p className="text-sm text-gray-600 mb-4">
-        Percent off coupon banao. Discount sirf items ke subtotal par lagta hai, delivery par nahi. Khali fields par koi limit nahi.
+        Create percentage-off coupons. The discount applies to the item subtotal only, not to delivery charges. Leave optional fields blank for no limit.
       </p>
 
       <div className="border rounded-xl p-4 mb-6 bg-white">
-        <h2 className="font-medium mb-3">{editId ? "Coupon edit karo" : "Naya coupon"}</h2>
+        <h2 className="font-medium mb-3">{editId ? "Edit coupon" : "New coupon"}</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="text-xs text-gray-600">Code</label>
@@ -131,15 +131,15 @@ export default function AdminCouponsPage() {
             </div>
           </div>
           <div>
-            <label className="text-xs text-gray-600">Percent off (1 se 100)</label>
+            <label className="text-xs text-gray-600">Discount percentage (1-100)</label>
             <input className={input} type="number" min={1} max={100} value={form.percentOff} onChange={(e) => setForm({ ...form, percentOff: e.target.value })} placeholder="20" />
           </div>
           <div>
-            <label className="text-xs text-gray-600">Max discount Rs (optional)</label>
+            <label className="text-xs text-gray-600">Maximum discount (&#8377;, optional)</label>
             <input className={input} type="number" min={0} value={form.maxDiscount} onChange={(e) => setForm({ ...form, maxDiscount: e.target.value })} placeholder="150" />
           </div>
           <div>
-            <label className="text-xs text-gray-600">Minimum order Rs (optional)</label>
+            <label className="text-xs text-gray-600">Minimum order value (&#8377;, optional)</label>
             <input className={input} type="number" min={0} value={form.minOrder} onChange={(e) => setForm({ ...form, minOrder: e.target.value })} placeholder="299" />
           </div>
           <div>
@@ -165,7 +165,7 @@ export default function AdminCouponsPage() {
       {loading ? (
         <p className="text-sm text-gray-600">Loading...</p>
       ) : coupons.length === 0 ? (
-        <p className="text-sm text-gray-600">Abhi koi coupon nahi hai.</p>
+        <p className="text-sm text-gray-600">No coupons have been created yet.</p>
       ) : (
         <div className="space-y-3">
           {coupons.map((c) => {
@@ -177,14 +177,14 @@ export default function AdminCouponsPage() {
                   <div className="flex items-center gap-2">
                     <span className="font-semibold tracking-wide">{c.code}</span>
                     <span className="text-sm">{c.percentOff}% off</span>
-                    {!c.isActive && <span className="text-xs border rounded-full px-2 py-0.5 text-gray-600">Off</span>}
+                    {!c.isActive && <span className="text-xs border rounded-full px-2 py-0.5 text-gray-600">Inactive</span>}
                     {expired && <span className="text-xs border rounded-full px-2 py-0.5 text-red-600">Expired</span>}
-                    {full && <span className="text-xs border rounded-full px-2 py-0.5 text-red-600">Limit full</span>}
+                    {full && <span className="text-xs border rounded-full px-2 py-0.5 text-red-600">Limit reached</span>}
                   </div>
                   <p className="text-xs text-gray-600 mt-1">
                     Used {c.usedCount}{c.usageLimit !== null ? " / " + c.usageLimit : ""}
-                    {c.maxDiscount !== null ? " | max Rs " + Number(c.maxDiscount) : ""}
-                    {c.minOrder !== null ? " | min order Rs " + Number(c.minOrder) : ""}
+                    {c.maxDiscount !== null ? " | max \u20B9" + Number(c.maxDiscount) : ""}
+                    {c.minOrder !== null ? " | min order \u20B9" + Number(c.minOrder) : ""}
                     {c.expiresAt ? " | expires " + c.expiresAt.slice(0, 10) : ""}
                   </p>
                 </div>

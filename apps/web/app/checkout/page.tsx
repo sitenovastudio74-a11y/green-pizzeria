@@ -218,12 +218,12 @@ export default function CheckoutPage() {
       const data = await res.json().catch(() => null);
       if (!res.ok) {
         setAppliedCoupon(null);
-        setCouponMsg(Array.isArray(data?.message) ? data.message.join(", ") : data?.message || "Coupon apply nahi hua.");
+        setCouponMsg(Array.isArray(data?.message) ? data.message.join(", ") : data?.message || "Unable to apply this coupon.");
       } else {
         setAppliedCoupon({ code: data.code, percentOff: data.percentOff, discount: Number(data.discount) });
       }
     } catch {
-      setCouponMsg("Coupon check nahi ho paya. Dobara try karo.");
+      setCouponMsg("Unable to verify the coupon. Please try again.");
     } finally {
       setCouponBusy(false);
     }
