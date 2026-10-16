@@ -64,6 +64,10 @@ export default function CheckoutPage() {
 
   const [orderType, setOrderType] = useState<OrderType>("DELIVERY");
   const [deliveryFee, setDeliveryFee] = useState(0);
+  const [couponInput, setCouponInput] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; percentOff: number; discount: number } | null>(null);
+  const [couponMsg, setCouponMsg] = useState<string | null>(null);
+  const [couponBusy, setCouponBusy] = useState(false);
   const [taxRatePercent, setTaxRatePercent] = useState(5);
 
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -195,9 +199,35 @@ export default function CheckoutPage() {
   }
 
   const subtotal = cart ? cart.items.reduce((sum, i) => sum + i.lineTotal, 0) + (cart.comboItems || []).reduce((sum, c) => sum + c.lineTotal, 0) : 0;
-  const tax = Math.round((subtotal * taxRatePercent) / 100);
+  const discount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
+  const tax = Math.round(((subtotal - discount) * taxRatePercent) / 100);
   const effectiveDeliveryFee = orderType === "DELIVERY" && deliveryQuote?.deliverable ? (deliveryQuote.fee ?? 0) : 0;
-  const total = subtotal + (orderType === "DELIVERY" ? effectiveDeliveryFee : 0) + tax;
+  const total = subtotal - discount + (orderType === "DELIVERY" ? effectiveDeliveryFee : 0) + tax;
+
+  async function applyCoupon() {
+    const code = couponInput.trim();
+    if (!code) return;
+    setCouponBusy(true);
+    setCouponMsg(null);
+    try {
+      const res = await apiFetch("/coupons/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code, subtotal }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        setAppliedCoupon(null);
+        setCouponMsg(Array.isArray(data?.message) ? data.message.join(", ") : data?.message || "Coupon apply nahi hua.");
+      } else {
+        setAppliedCoupon({ code: data.code, percentOff: data.percentOff, discount: Number(data.discount) });
+      }
+    } catch {
+      setCouponMsg("Coupon check nahi ho paya. Dobara try karo.");
+    } finally {
+      setCouponBusy(false);
+    }
+  }
 
   async function handlePlaceOrder() {
     setError(null);
@@ -223,6 +253,7 @@ export default function CheckoutPage() {
           addressId: orderType === "DELIVERY" ? selectedAddressId : undefined,
           paymentMethod,
           specialInstructions: specialInstructions || undefined,
+          couponCode: appliedCoupon ? appliedCoupon.code : undefined,
         }),
       });
 
@@ -528,6 +559,35 @@ export default function CheckoutPage() {
         className="w-full border rounded-lg px-3 py-2 text-sm mb-6"
         rows={2}
       />
+
+      <div className="border rounded-lg p-3 mb-4 text-sm">
+        {appliedCoupon ? (
+          <div className="flex items-center justify-between">
+            <span>
+              Coupon <b>{appliedCoupon.code}</b> ({appliedCoupon.percentOff}% off) applied: -&#8377;{discount}
+            </span>
+            <button type="button" className="text-red-600" onClick={() => { setAppliedCoupon(null); setCouponInput(""); setCouponMsg(null); }}>
+              Remove
+            </button>
+          </div>
+        ) : (
+          <div>
+            <div className="flex gap-2">
+              <input
+                value={couponInput}
+                onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                placeholder="Coupon code"
+                maxLength={40}
+                className="flex-1 border rounded-lg px-3 py-2"
+              />
+              <button type="button" onClick={applyCoupon} disabled={couponBusy || !couponInput.trim()} className="border rounded-lg px-4 disabled:opacity-50">
+                {couponBusy ? "..." : "Apply"}
+              </button>
+            </div>
+            {couponMsg && <p className="text-xs text-red-600 mt-2">{couponMsg}</p>}
+          </div>
+        )}
+      </div>
 
       {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
 
