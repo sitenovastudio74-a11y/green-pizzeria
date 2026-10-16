@@ -33,6 +33,7 @@ type OrderDetail = {
   subtotal: number;
   deliveryFee: number;
   tax: number;
+  couponCode?: string | null;
   discount: number;
   total: number;
   specialInstructions: string | null;
@@ -196,8 +197,8 @@ export default function ReceiptPrint({ orderId }: { orderId: string }) {
               ))}
               <div className="line" />
               <div className="row"><span>Subtotal</span><span>&#8377;{order.subtotal}</span></div>
+              {Number(order.discount || 0) > 0 && <div className="row"><span>Discount{order.couponCode ? " (" + order.couponCode + ")" : ""}</span><span>-&#8377;{Number(order.discount)}</span></div>}
               {order.deliveryFee > 0 && <div className="row"><span>Delivery fee</span><span>&#8377;{order.deliveryFee}</span></div>}
-              {order.discount > 0 && <div className="row"><span>Discount</span><span>- &#8377;{order.discount}</span></div>}
               <div className="row"><span>Tax</span><span>&#8377;{order.tax}</span></div>
               <div className="row"><strong>Total</strong><strong>&#8377;{order.total}</strong></div>
               <div className="line" />
